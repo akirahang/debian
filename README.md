@@ -9,7 +9,7 @@ wget -O /root/debian-maintained.sh https://github.com/akirahang/debian/raw/main/
 
 Docker-compose 克隆
 ```
-wget -O /root/docker-compose.yml https://raw.githubusercontent.com/cautious1064/ubuntu/main/docker-compose.yml
+wget -O /root/docker-compose.yml https://github.com/akirahang/debian/raw/main/docker-compose.yml
 ```
 Debian DNS修改
 ```
