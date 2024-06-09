@@ -1,4 +1,4 @@
-# Ubuntu
+# Debian
 
 维护
 ```
