@@ -2,7 +2,7 @@
 
 维护
 ```
-wget -O /root/ubuntu-maintained.sh https://raw.githubusercontent.com/cautious1064/ubuntu/main/ubuntu-maintained.sh && chmod a+x ubuntu-maintained.sh && bash ubuntu-maintained.sh
+wget -O /root/debian-maintained.sh https://github.com/akirahang/debian/raw/main/debian-maintained.sh && chmod a+x debian-maintained.sh && bash debian-maintained.sh
 ```
 
 # 快速部署 
@@ -13,7 +13,7 @@ wget -O /root/docker-compose.yml https://raw.githubusercontent.com/cautious1064/
 ```
 Debian DNS修改
 ```
-wget -O /root/debian-dns.sh https://raw.githubusercontent.com/akirahang/debian/main/debian-dns.sh && chmod a+x /root/ubuntu-dns.sh && bash /root/ubuntu-dns.sh
+wget -O /root/debian-dns.sh https://raw.githubusercontent.com/akirahang/debian/main/debian-dns.sh && chmod a+x /root/debian-dns.sh && bash /root/debian-dns.sh
 ```
 
 Docker 容器备份
