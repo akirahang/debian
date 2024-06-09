@@ -13,7 +13,7 @@ wget -O /root/docker-compose.yml https://raw.githubusercontent.com/cautious1064/
 ```
 Debian DNS修改
 ```
-wget -O /root/ubuntu-dns.sh https://github.com/cautious1064/ubuntu/raw/main/ubuntu-dns.sh && chmod a+x /root/ubuntu-dns.sh && bash /root/ubuntu-dns.sh
+wget -O /root/debian-dns.sh https://raw.githubusercontent.com/akirahang/debian/main/debian-dns.sh && chmod a+x /root/ubuntu-dns.sh && bash /root/ubuntu-dns.sh
 ```
 
 Docker 容器备份
