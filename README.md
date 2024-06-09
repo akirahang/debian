@@ -18,6 +18,6 @@ wget -O /root/debian-dns.sh https://raw.githubusercontent.com/akirahang/debian/m
 
 Docker 容器备份
 ```
-wget -O /root/docker-backup.sh https://raw.githubusercontent.com/cautious1064/ubuntu/main/docker-backup.sh && chmod +x /root/docker-backup.sh && bash /root/docker-backup.sh
+wget -O /root/docker-backup.sh https://github.com/akirahang/debian/raw/main/docker-backup.sh && chmod +x /root/docker-backup.sh && bash /root/docker-backup.sh
 
 ```
