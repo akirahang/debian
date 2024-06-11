@@ -69,7 +69,7 @@ services:
     restart: unless-stopped
     command: --cleanup
   aapanel:
-    image: aapanel/aapanel
+    image: aapanel/aapanel:lnmp
     container_name: aapanel
     network_mode: host
     restart: unless-stopped
