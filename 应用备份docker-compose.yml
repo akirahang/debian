@@ -68,9 +68,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
     command: --cleanup
-  btpanel:
-    image: btpanel/baota:l
-    container_name: btpanel
+  aapanel:
+    image: aapanel/aapanel
+    container_name: aapanel
     network_mode: host
     restart: unless-stopped
     volumes:
