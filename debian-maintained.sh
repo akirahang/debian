@@ -325,9 +325,125 @@ backup_container_volumes() {
     read -p "按 Enter 键返回 Docker 管理菜单..."
 }
 
-# 主菜单函数
+quick_deploy_menu() {
+    while true; do
+        clear
+        echo "==============================="
+        echo "      快速部署       "
+        echo "==============================="
+        echo "1. 快速部署基础容器"
+        echo "2. 返回上级菜单"
+        echo "==============================="
+        read -p "请选择一个选项 (1-2): " deploy_choice
+
+        case $deploy_choice in
+            1) deploy_basic_containers ;;
+            2) return ;;
+            *) echo "无效选项，请重试"; sleep 2 ;;
+        esac
+    done
+}
+
+# 函数：修改DNS设置
+modify_dns_settings() {
+    clear
+    echo "==============================="
+    echo "       修改DNS设置       "
+    echo "==============================="
+    echo
+
+    # 提示用户输入新的DNS服务器地址
+    read -p "请输入新的DNS服务器地址（多个地址以空格分隔）: " dns_addresses
+
+    # 检查是否输入了DNS地址
+    if [ -z "$dns_addresses" ]; then
+        echo "未输入DNS地址。"
+        read -p "按Enter键返回系统设置菜单..."
+        return
+    fi
+
+    # 将DNS地址写入文件
+    echo "# Custom DNS servers" | sudo tee /etc/resolv.conf > /dev/null
+    for address in $dns_addresses; do
+        echo "nameserver $address" | sudo tee -a /etc/resolv.conf > /dev/null
+    done
+
+    echo "DNS设置已更新为："
+    cat /etc/resolv.conf
+
+    read -p "按Enter键返回系统设置菜单..."
+}
+
+# 函数：部署云服务
 #!/bin/bash
 
+# 函数：检查并安装 sudo
+check_and_install_sudo() {
+    if ! command -v sudo &> /dev/null; then
+        echo "sudo 未安装，正在安装 sudo..."
+        apt update
+        apt install sudo -y
+    fi
+}
+
+# 函数：从云端读取 Docker Compose 文件并部署选择的服务
+deploy_cloud_service() {
+    # 调用检查并安装 sudo 函数
+    check_and_install_sudo
+
+    # 读取云端 Docker Compose 文件内容
+    COMPOSE_URL="https://github.com/akirahang/debian/raw/main/%E5%BA%94%E7%94%A8%E5%A4%87%E4%BB%BDdocker-compose.yml"
+    COMPOSE_CONTENT=$(curl -sSL $COMPOSE_URL)
+
+    # 提取容器名称和对应的 container_name 值
+    echo "请选择要安装的容器："
+    echo "------------------------------------"
+    CONTAINERS=$(echo "$COMPOSE_CONTENT" | awk '/^\s*container_name:/ {gsub(":", ""); print $2}')
+    IFS=$'\n' read -rd '' -a CONTAINER_NAMES <<<"$CONTAINERS"
+    for index in "${!CONTAINER_NAMES[@]}"; do
+        echo "$(($index + 1)). ${CONTAINER_NAMES[$index]}"
+    done
+    echo "------------------------------------"
+    read -p "请输入要安装的容器序号：" SERVICE_INDEX
+
+    # 根据用户输入的序号获取容器名称
+    SERVICE_NAME=${CONTAINER_NAMES[$(($SERVICE_INDEX - 1))]}
+
+    # 检查用户输入的序号是否有效
+    if [ -z "$SERVICE_NAME" ]; then
+        echo "错误：未找到序号为 '$SERVICE_INDEX' 的容器。"
+        exit 1
+    fi
+
+    # 执行安装部署操作
+    echo "正在部署容器 '$SERVICE_NAME'..."
+    echo "$COMPOSE_CONTENT" | docker-compose -f - up -d "$SERVICE_NAME"
+
+    echo "容器 '$SERVICE_NAME' 已成功部署。"
+}
+
+# 添加任务
+add_cron_job() {
+    read -p "请输入任务的命令: " command
+    read -p "请输入任务的时间表(e.g., '0 2 * * *' 表示每天凌晨2点): " schedule
+    (crontab -l; echo "$schedule $command") | crontab -
+    echo "任务已添加: $schedule $command"
+}
+
+# 删除任务
+remove_cron_job() {
+    read -p "请输入要删除的任务的命令: " command
+    crontab -l | grep -v "$command" | crontab -
+    echo "任务已删除: $command"
+}
+
+# 列出所有任务
+list_cron_jobs() {
+    crontab -l
+}
+
+# 主菜单函数
+#!/bin/bash
 # 主菜单函数
 show_main_menu() {
     while true; do
@@ -340,9 +456,10 @@ show_main_menu() {
         echo "3. 系统优化"
         echo "4. 系统清理"
         echo "5. 系统设置"
-        echo "6. 退出"
+        echo "6. 管理 Crontab 任务"
+        echo "7. 退出"
         echo "==============================="
-        read -p "请选择一个选项 (1-6): " main_choice
+        read -p "请选择一个选项 (1-7): " main_choice
 
         case $main_choice in
             1) docker_management_menu ;;
@@ -350,7 +467,8 @@ show_main_menu() {
             3) system_optimization_menu ;;
             4) system_cleanup_menu ;;
             5) system_settings_menu ;;
-            6) echo "退出脚本"; exit 0 ;;
+            6) crontab_management_menu ;;
+            7) echo "退出脚本"; exit 0 ;;
             *) echo "无效选项，请重试"; sleep 2 ;;
         esac
         read -p "按 Enter 键返回主菜单..."
@@ -450,103 +568,29 @@ system_settings_menu() {
     done
 }
 
-quick_deploy_menu() {
+crontab_management_menu() {
     while true; do
         clear
         echo "==============================="
-        echo "      快速部署       "
+        echo "      管理 Crontab 任务       "
         echo "==============================="
-        echo "1. 快速部署基础容器"
-        echo "2. 返回上级菜单"
+        echo "1. 添加一个 crontab 任务"
+        echo "2. 删除一个 crontab 任务"
+        echo "3. 列出所有 crontab 任务"
+        echo "4. 返回上级菜单"
         echo "==============================="
-        read -p "请选择一个选项 (1-2): " deploy_choice
+        read -p "请选择一个选项 (1-4): " crontab_choice
 
-        case $deploy_choice in
-            1) deploy_basic_containers ;;
-            2) return ;;
+        case $crontab_choice in
+            1) add_cron_job ;;
+            2) remove_cron_job ;;
+            3) list_cron_jobs ;;
+            4) break ;;
             *) echo "无效选项，请重试"; sleep 2 ;;
         esac
+        read -p "按 Enter 键返回 Crontab 管理菜单..."
     done
 }
-
-# 函数：修改DNS设置
-modify_dns_settings() {
-    clear
-    echo "==============================="
-    echo "       修改DNS设置       "
-    echo "==============================="
-    echo
-
-    # 提示用户输入新的DNS服务器地址
-    read -p "请输入新的DNS服务器地址（多个地址以空格分隔）: " dns_addresses
-
-    # 检查是否输入了DNS地址
-    if [ -z "$dns_addresses" ]; then
-        echo "未输入DNS地址。"
-        read -p "按Enter键返回系统设置菜单..."
-        return
-    fi
-
-    # 将DNS地址写入文件
-    echo "# Custom DNS servers" | sudo tee /etc/resolv.conf > /dev/null
-    for address in $dns_addresses; do
-        echo "nameserver $address" | sudo tee -a /etc/resolv.conf > /dev/null
-    done
-
-    echo "DNS设置已更新为："
-    cat /etc/resolv.conf
-
-    read -p "按Enter键返回系统设置菜单..."
-}
-
-# 函数：部署云服务
-#!/bin/bash
-
-# 函数：检查并安装 sudo
-check_and_install_sudo() {
-    if ! command -v sudo &> /dev/null; then
-        echo "sudo 未安装，正在安装 sudo..."
-        apt update
-        apt install sudo -y
-    fi
-}
-
-# 函数：从云端读取 Docker Compose 文件并部署选择的服务
-deploy_cloud_service() {
-    # 调用检查并安装 sudo 函数
-    check_and_install_sudo
-
-    # 读取云端 Docker Compose 文件内容
-    COMPOSE_URL="https://github.com/akirahang/debian/raw/main/%E5%BA%94%E7%94%A8%E5%A4%87%E4%BB%BDdocker-compose.yml"
-    COMPOSE_CONTENT=$(curl -sSL $COMPOSE_URL)
-
-    # 提取容器名称和对应的 container_name 值
-    echo "请选择要安装的容器："
-    echo "------------------------------------"
-    CONTAINERS=$(echo "$COMPOSE_CONTENT" | awk '/^\s*container_name:/ {gsub(":", ""); print $2}')
-    IFS=$'\n' read -rd '' -a CONTAINER_NAMES <<<"$CONTAINERS"
-    for index in "${!CONTAINER_NAMES[@]}"; do
-        echo "$(($index + 1)). ${CONTAINER_NAMES[$index]}"
-    done
-    echo "------------------------------------"
-    read -p "请输入要安装的容器序号：" SERVICE_INDEX
-
-    # 根据用户输入的序号获取容器名称
-    SERVICE_NAME=${CONTAINER_NAMES[$(($SERVICE_INDEX - 1))]}
-
-    # 检查用户输入的序号是否有效
-    if [ -z "$SERVICE_NAME" ]; then
-        echo "错误：未找到序号为 '$SERVICE_INDEX' 的容器。"
-        exit 1
-    fi
-
-    # 执行安装部署操作
-    echo "正在部署容器 '$SERVICE_NAME'..."
-    echo "$COMPOSE_CONTENT" | docker-compose -f - up -d "$SERVICE_NAME"
-
-    echo "容器 '$SERVICE_NAME' 已成功部署。"
-}
-
 # 主程序入口，运行主菜单
 show_main_menu
 
