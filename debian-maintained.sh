@@ -104,9 +104,17 @@ delete_container() {
     echo "    删除特定 Docker 容器和相关映射目录    "
     echo "==============================="
 
+    # 获取所有容器的ID和名称
+    container_list=$(docker ps -a --format "{{.ID}}: {{.Names}}")
+
+    if [ -z "$container_list" ]; then
+        echo "没有找到任何 Docker 容器"
+        return
+    fi
+
     # 显示所有容器的ID和名称
     echo "当前运行的 Docker 容器列表："
-    docker ps -a --format "table {{.ID}}\t{{.Names}}"
+    echo "$container_list"
 
     read -p "请输入要删除的容器ID： " container_id
     if [ -z "$container_id" ]; then
