@@ -200,7 +200,55 @@ modify_tmp_size() {
     fi
 }
 
-# 函数：显示主菜单
+# 函数：快速部署基础容器
+deploy_basic_containers() {
+    echo "==============================="
+    echo "   快速部署基础容器    "
+    echo "==============================="
+
+    # 创建 docker-compose.yml 文件
+    cat <<EOF > docker-compose.yml
+version: '3'
+services:
+
+  portainer:
+    image: portainer/portainer-ce
+    container_name: portainer
+    restart: unless-stopped
+    ports:
+      - 8000:8000
+      - 9443:9443
+      - 9000:9000
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+ 
+  filebrowser:
+    image: filebrowser/filebrowser
+    container_name: filebrowser
+    volumes:
+      - /:/srv
+    restart: unless-stopped
+    ports:
+      - 8081:80
+      
+volumes:
+  portainer_data:
+    driver: local
+EOF
+
+    echo "正在启动基础容器..."
+    sudo docker-compose up -d
+
+    if [ $? -eq 0 ]; then
+        echo "基础容器已成功部署"
+    else
+        echo "部署基础容器失败"
+    fi
+}
+
+
+# 主菜单函数
 show_main_menu() {
     while true; do
         clear
@@ -215,9 +263,10 @@ show_main_menu() {
         echo "6. 添加SSH密钥"
         echo "7. 调整交换空间大小"
         echo "8. 修改 /tmp 大小"
-        echo "9. 退出"
+        echo "9. 快速部署基础容器"
+        echo "10. 退出"
         echo "==============================="
-        read -p "请选择一个选项 (1-9): " choice
+        read -p "请选择一个选项 (1-10): " choice
 
         case $choice in
             1) install_docker_and_compose ;;
@@ -228,13 +277,13 @@ show_main_menu() {
             6) add_ssh_key ;;
             7) adjust_swap_space ;;
             8) modify_tmp_size ;;
-            9) echo "退出脚本"; exit 0 ;;
+            9) deploy_basic_containers ;;
+            10) echo "退出脚本"; exit 0 ;;
             *) echo "无效选项，请重试"; sleep 2 ;;
         esac
         read -p "按 Enter 键返回主菜单..."
     done
 }
 
-# 主程序
-check_and_install_sudo
+# 运行主菜单
 show_main_menu
