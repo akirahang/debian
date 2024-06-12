@@ -213,7 +213,7 @@ modify_tmp_size() {
 
 
 # 函数：快速部署基础容器
-quick_deploy_menu() {
+deploy_basic_containers() {
     echo "==============================="
     echo "   快速部署基础容器    "
     echo "==============================="
@@ -433,6 +433,35 @@ system_settings_menu() {
             *) echo "无效选项，请重试"; sleep 2 ;;
         esac
     done
+}
+
+quick_deploy_menu() {
+    while true; do
+        clear
+        echo "==============================="
+        echo "      快速部署       "
+        echo "==============================="
+        echo "1. 快速部署基础容器"
+        echo "2. 返回上级菜单"
+        echo "==============================="
+        read -p "请选择一个选项 (1-2): " deploy_choice
+
+        case $deploy_choice in
+            1) deploy_basic_containers ;;
+            2) return ;;
+            *) echo "无效选项，请重试"; sleep 2 ;;
+        esac
+    done
+}
+
+modify_dns_settings() {
+    clear
+    echo "==============================="
+    echo "      修改系统 DNS       "
+    echo "==============================="
+    # 编写修改系统 DNS 的逻辑，例如使用命令行工具修改
+    echo "示例：使用 'nmcli' 命令修改 DNS 设置"
+    read -p "按 Enter 键返回系统设置菜单..."
 }
 
 # 主程序入口，运行主菜单
