@@ -33,7 +33,7 @@ services:
     tty: true
   nginx:
     image: jc21/nginx-proxy-manager
-    container_name: nginx
+    container_name: nginx-proxy-manager
     restart: unless-stopped
     network_mode: host
     volumes:
