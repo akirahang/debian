@@ -33,7 +33,7 @@ services:
     tty: true
   nginx:
     image: jc21/nginx-proxy-manager
-     container_name: nginx
+    container_name: nginx
     restart: unless-stopped
     network_mode: host
     volumes:
@@ -50,6 +50,7 @@ services:
       - /root/ql/data:/ql/data
   watchtower:
     image: containrrr/watchtower
+    container_name: watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
