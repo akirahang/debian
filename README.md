@@ -4,6 +4,12 @@
 ```
 wget -O /root/debian-maintained.sh https://github.com/akirahang/debian/raw/main/debian-maintained.sh && chmod a+x debian-maintained.sh && bash debian-maintained.sh
 ```
+# Fedora 
+
+维护
+```
+wget -O /root/fedora-maintained.sh https://github.com/akirahang/debian/raw/main/fedora-maintained.sh && chmod a+x fedora-maintained.sh && bash fedora-maintained.sh
+```
 
 # 快速部署 
 
