@@ -19,21 +19,6 @@ services:
       - UMASK=022
     volumes:
       - /etc/alist:/opt/alist/data
-  chatgpt-web:
-    image: chenzhaoyu94/chatgpt-web
-    ports:
-      - 3002:3002
-    environment:
-      - OPENAI_API_KEY=xxxxxx
-      - OPENAI_ACCESS_TOKEN=xxxxxx
-      - OPENAI_API_BASE_URL=xxxx
-      - OPENAI_API_MODEL=xxxx
-      - API_REVERSE_PROXY=xxx
-      - AUTH_SECRET_KEY=xxx
-      - MAX_REQUEST_PER_HOUR=0
-      - TIMEOUT_MS=60000
-      - SOCKS_PROXY_HOST=xxxx
-      - SOCKS_PROXY_PORT=xxxx
   mcserver:
     image: marctv/minecraft-papermc-server:latest
     container_name: mcserver
