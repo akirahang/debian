@@ -103,6 +103,11 @@ delete_container() {
     echo "==============================="
     echo "    删除特定 Docker 容器和相关映射目录    "
     echo "==============================="
+
+    # 显示所有容器的ID和名称
+    echo "当前运行的 Docker 容器列表："
+    docker ps -a --format "table {{.ID}}\t{{.Names}}"
+
     read -p "请输入要删除的容器ID： " container_id
     if [ -z "$container_id" ]; then
         echo "未提供容器ID"
