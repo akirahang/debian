@@ -34,7 +34,7 @@ services:
       - "25565:25565"
     tty: true
 
-  nginx-proxy-manager:
+  nginx:
     image: jc21/nginx-proxy-manager
     container_name: nginx-proxy-manager
     restart: unless-stopped
