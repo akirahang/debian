@@ -191,23 +191,26 @@ modify_tmp_size() {
         return 1
     fi
 
-    # 从 /etc/fstab 删除任何现有的 /tmp 条目
-    sudo sed -i '/\/tmp/d' /etc/fstab
+    # 检查是否存在 /tmp 条目，如果存在则先删除
+    if grep -q "/tmp" /etc/fstab; then
+        sudo sed -i '/\/tmp/d' /etc/fstab
+    fi
 
     # 添加新的 /tmp 条目
     echo "tmpfs /tmp tmpfs defaults,size=${new_tmp_size}M 0 0" | sudo tee -a /etc/fstab
 
-    # 重新挂载 /tmp
+    # 尝试挂载 /tmp
     sudo mount -o remount /tmp
 
-    # 检查 /etc/fstab 中是否包含 /tmp，并且 /tmp 是否已挂载
-    if grep -q "/tmp" /etc/fstab && mount | grep -q "/tmp"; then
+    # 再次检查是否成功挂载 /tmp
+    if mount | grep -q "/tmp"; then
         echo "/tmp 大小已修改为 ${new_tmp_size}MB"
     else
         echo "修改 /tmp 大小失败"
         return 1
     fi
 }
+
 
 # 函数：快速部署基础容器
 deploy_basic_containers() {
