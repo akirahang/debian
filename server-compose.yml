@@ -36,7 +36,7 @@ services:
 
   nginx:
     image: jc21/nginx-proxy-manager
-    container_name: nginx-proxy-manager
+    container_name: nginx
     restart: unless-stopped
     network_mode: host
     volumes:
