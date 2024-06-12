@@ -255,35 +255,136 @@ show_main_menu() {
         echo "==============================="
         echo "      脚本功能列表       "
         echo "==============================="
-        echo "1. 安装 Docker 和 Docker Compose"
-        echo "2. 启用 BBR FQ"
-        echo "3. 清除所有容器日志"
-        echo "4. 更新和清理系统"
-        echo "5. 删除特定 Docker 容器和相关映射目录"
-        echo "6. 添加SSH密钥"
-        echo "7. 调整交换空间大小"
-        echo "8. 修改 /tmp 大小"
-        echo "9. 快速部署基础容器"
-        echo "10. 退出"
+        echo "1. Docker 管理"
+        echo "2. 系统优化"
+        echo "3. 系统清理"
+        echo "4. 系统设置"
+        echo "5. 快速部署"
+        echo "6. 退出"
         echo "==============================="
-        read -p "请选择一个选项 (1-10): " choice
+        read -p "请选择一个选项 (1-6): " main_choice
 
-        case $choice in
-            1) install_docker_and_compose ;;
-            2) enable_bbr_fq ;;
-            3) clear_container_logs ;;
-            4) update_and_clean_system ;;
-            5) delete_container ;;
-            6) add_ssh_key ;;
-            7) adjust_swap_space ;;
-            8) modify_tmp_size ;;
-            9) deploy_basic_containers ;;
-            10) echo "退出脚本"; exit 0 ;;
+        case $main_choice in
+            1) docker_management_menu ;;
+            2) system_optimization_menu ;;
+            3) system_cleanup_menu ;;
+            4) system_settings_menu ;;
+            5) quick_deploy_menu ;;
+            6) echo "退出脚本"; exit 0 ;;
             *) echo "无效选项，请重试"; sleep 2 ;;
         esac
         read -p "按 Enter 键返回主菜单..."
     done
 }
 
+docker_management_menu() {
+    while true; do
+        clear
+        echo "==============================="
+        echo "      Docker 管理       "
+        echo "==============================="
+        echo "1. 安装 Docker 和 Docker Compose"
+        echo "2. 清除所有容器日志"
+        echo "3. 删除特定 Docker 容器和相关映射目录"
+        echo "4. 返回上级菜单"
+        echo "==============================="
+        read -p "请选择一个选项 (1-4): " docker_choice
+
+        case $docker_choice in
+            1) install_docker_and_compose ;;
+            2) clear_container_logs ;;
+            3) delete_container ;;
+            4) break ;;
+            *) echo "无效选项，请重试"; sleep 2 ;;
+        esac
+        read -p "按 Enter 键返回 Docker 管理菜单..."
+    done
+}
+
+system_optimization_menu() {
+    while true; do
+        clear
+        echo "==============================="
+        echo "      系统优化       "
+        echo "==============================="
+        echo "1. 启用 BBR FQ"
+        echo "2. 调整交换空间大小"
+        echo "3. 修改 /tmp 大小"
+        echo "4. 返回上级菜单"
+        echo "==============================="
+        read -p "请选择一个选项 (1-4): " optimization_choice
+
+        case $optimization_choice in
+            1) enable_bbr_fq ;;
+            2) adjust_swap_space ;;
+            3) modify_tmp_size ;;
+            4) break ;;
+            *) echo "无效选项，请重试"; sleep 2 ;;
+        esac
+        read -p "按 Enter 键返回系统优化菜单..."
+    done
+}
+
+system_cleanup_menu() {
+    while true; do
+        clear
+        echo "==============================="
+        echo "      系统清理       "
+        echo "==============================="
+        echo "1. 更新和清理系统"
+        echo "2. 返回上级菜单"
+        echo "==============================="
+        read -p "请选择一个选项 (1-2): " cleanup_choice
+
+        case $cleanup_choice in
+            1) update_and_clean_system ;;
+            2) break ;;
+            *) echo "无效选项，请重试"; sleep 2 ;;
+        esac
+        read -p "按 Enter 键返回系统清理菜单..."
+    done
+}
+
+system_settings_menu() {
+    while true; do
+        clear
+        echo "==============================="
+        echo "      系统设置       "
+        echo "==============================="
+        echo "1. 添加SSH密钥"
+        echo "2. 返回上级菜单"
+        echo "==============================="
+        read -p "请选择一个选项 (1-2): " settings_choice
+
+        case $settings_choice in
+            1) add_ssh_key ;;
+            2) break ;;
+            *) echo "无效选项，请重试"; sleep 2 ;;
+        esac
+        read -p "按 Enter 键返回系统设置菜单..."
+    done
+}
+
+quick_deploy_menu() {
+    while true; do
+        clear
+        echo "==============================="
+        echo "      快速部署       "
+        echo "==============================="
+        echo "1. 快速部署基础容器"
+        echo "2. 返回上级菜单"
+        echo "==============================="
+        read -p "请选择一个选项 (1-2): " deploy_choice
+
+        case $deploy_choice in
+            1) deploy_basic_containers ;;
+            2) break ;;
+            *) echo "无效选项，请重试"; sleep 2 ;;
+        esac
+        read -p "按 Enter 键返回快速部署菜单..."
+    done
+}
+
 # 运行主菜单
 show_main_menu
+
