@@ -454,14 +454,34 @@ quick_deploy_menu() {
     done
 }
 
+# 函数：修改DNS设置
 modify_dns_settings() {
     clear
     echo "==============================="
-    echo "      修改系统 DNS       "
+    echo "       修改DNS设置       "
     echo "==============================="
-    # 编写修改系统 DNS 的逻辑，例如使用命令行工具修改
-    echo "示例：使用 'nmcli' 命令修改 DNS 设置"
-    read -p "按 Enter 键返回系统设置菜单..."
+    echo
+
+    # 提示用户输入新的DNS服务器地址
+    read -p "请输入新的DNS服务器地址（多个地址以空格分隔）: " dns_addresses
+
+    # 检查是否输入了DNS地址
+    if [ -z "$dns_addresses" ]; then
+        echo "未输入DNS地址。"
+        read -p "按Enter键返回系统设置菜单..."
+        return
+    fi
+
+    # 将DNS地址写入文件
+    echo "# Custom DNS servers" | sudo tee /etc/resolv.conf > /dev/null
+    for address in $dns_addresses; do
+        echo "nameserver $address" | sudo tee -a /etc/resolv.conf > /dev/null
+    done
+
+    echo "DNS设置已更新为："
+    cat /etc/resolv.conf
+
+    read -p "按Enter键返回系统设置菜单..."
 }
 
 # 主程序入口，运行主菜单
