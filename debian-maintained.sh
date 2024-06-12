@@ -393,19 +393,22 @@ deploy_cloud_service() {
 
     # 读取云端 Docker Compose 文件内容
     COMPOSE_URL="https://github.com/akirahang/debian/raw/main/server-compose.yml"
-    COMPOSE_FILE="/tmp/docker-compose.yml"
-    curl -sSL $COMPOSE_URL -o $COMPOSE_FILE
+    COMPOSE_CONTENT=$(curl -sSL $COMPOSE_URL)
 
-    # 检查文件是否下载成功
-    if [ ! -f "$COMPOSE_FILE" ]; then
-        echo "错误：无法下载 Docker Compose 文件。"
+    # 检查是否成功获取文件内容
+    if [ -z "$COMPOSE_CONTENT" ]; then
+        echo "错误：无法获取 Docker Compose 文件内容。"
         exit 1
     fi
+
+    # 输出文件内容进行调试
+    echo "Docker Compose 文件内容："
+    echo "$COMPOSE_CONTENT"
 
     # 提取容器名称和对应的 container_name 值
     echo "请选择要安装的容器："
     echo "------------------------------------"
-    CONTAINERS=$(awk '/^\s*container_name:/ {gsub(":", ""); print $2}' "$COMPOSE_FILE")
+    CONTAINERS=$(echo "$COMPOSE_CONTENT" | awk '/^\s*container_name:/ {gsub(":", ""); print $2}')
     IFS=$'\n' read -rd '' -a CONTAINER_NAMES <<<"$CONTAINERS"
     for index in "${!CONTAINER_NAMES[@]}"; do
         echo "$(($index + 1)). ${CONTAINER_NAMES[$index]}"
@@ -424,7 +427,7 @@ deploy_cloud_service() {
 
     # 执行安装部署操作
     echo "正在部署容器 '$SERVICE_NAME'..."
-    docker-compose -f "$COMPOSE_FILE" up -d "$SERVICE_NAME"
+    echo "$COMPOSE_CONTENT" | docker-compose -f - up -d "$SERVICE_NAME"
 
     # 检查部署是否成功
     if [ $? -eq 0 ]; then
