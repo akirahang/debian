@@ -7,6 +7,7 @@ services:
       - /root/vw-data/:/data
     ports:
       - "86:80"
+
   alist:
     image: xhofe/alist
     container_name: alist
@@ -19,6 +20,7 @@ services:
       - UMASK=022
     volumes:
       - /etc/alist:/opt/alist/data
+
   mcserver:
     image: marctv/minecraft-papermc-server:latest
     container_name: mcserver
@@ -31,6 +33,7 @@ services:
     ports:
       - "25565:25565"
     tty: true
+
   nginx:
     image: jc21/nginx-proxy-manager
     container_name: nginx-proxy-manager
@@ -39,15 +42,17 @@ services:
     volumes:
       - /root/data:/data
       - /root/letsencrypt:/etc/letsencrypt
+
   qinglong:
     image: whyour/qinglong
     container_name: qinglong
     hostname: qinglong
     restart: unless-stopped
     ports:
-      - 5700:5700
+      - "5700:5700"
     volumes:
       - /root/ql/data:/ql/data
+
   watchtower:
     image: containrrr/watchtower
     container_name: watchtower
@@ -55,6 +60,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
     command: --cleanup
+
   aapanel:
     image: aapanel/aapanel:lnmp
     container_name: aapanel
@@ -64,6 +70,7 @@ services:
       - /root/website_data:/www/wwwroot
       - /root/mysql_data:/www/server/data
       - /root/vhost:/www/server/panel/vhost
+
   x-ui:
     image: enwaiax/x-ui:alpha-zh
     container_name: x-ui
@@ -72,6 +79,7 @@ services:
     volumes:
       - /root/x-ui/db/:/etc/x-ui/
       - /root/x-ui/cert/:/root/cert/
+
   adguardhome:
     container_name: adguardhome
     image: adguard/adguardhome
@@ -82,14 +90,15 @@ services:
     ports:
       - "53:53/tcp"
       - "53:53/udp"
-      - "3000:3000/tcp"  
+      - "3000:3000/tcp"
+
   wg-easy:
+    image: ghcr.io/wg-easy/wg-easy
+    container_name: wg-easy
     environment:
       - WG_HOST=raspberrypi.local
       - PASSWORD=foobar123
       - WG_PORT=51820
-    image: ghcr.io/wg-easy/wg-easy
-    container_name: wg-easy
     volumes:
       - /root/wireguard:/etc/wireguard
     ports:
@@ -101,29 +110,29 @@ services:
       - SYS_MODULE
     sysctls:
       - net.ipv4.ip_forward=1
-      - net.ipv4.conf.all.src_valid_mark=1    
-   palworld:
-      image: thijsvanloef/palworld-server-docker:latest
-      restart: unless-stopped
-      container_name: palworld-server
-      stop_grace_period: 30s # Set to however long you are willing to wait for the container to gracefully stop
-      ports:
-        - 8211:8211/udp
-        - 27015:27015/udp
-      environment:
-         PUID: 1000
-         PGID: 1000
-         PORT: 8211 # Optional but recommended
-         PLAYERS: 16 # Optional but recommended
-         SERVER_PASSWORD: "worldofpals" # Optional but recommended
-         MULTITHREADING: true
-         RCON_ENABLED: true
-         RCON_PORT: 25575
-         TZ: "UTC"
-         ADMIN_PASSWORD: "adminPasswordHere"
-         COMMUNITY: false  # Enable this if you want your server to show up in the community servers tab, USE WITH SERVER_PASSWORD!
-         SERVER_NAME: "palworld-server-docker by Thijs van Loef"
-         SERVER_DESCRIPTION: "palworld-server-docker by Thijs van Loef"
-      volumes:
-         - /root/palworld:/palworld/      
-      
+      - net.ipv4.conf.all.src_valid_mark=1
+
+  palworld:
+    image: thijsvanloef/palworld-server-docker:latest
+    container_name: palworld-server
+    restart: unless-stopped
+    stop_grace_period: 30s
+    ports:
+      - "8211:8211/udp"
+      - "27015:27015/udp"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - PORT=8211
+      - PLAYERS=16
+      - SERVER_PASSWORD="worldofpals"
+      - MULTITHREADING=true
+      - RCON_ENABLED=true
+      - RCON_PORT=25575
+      - TZ="UTC"
+      - ADMIN_PASSWORD="adminPasswordHere"
+      - COMMUNITY=false
+      - SERVER_NAME="palworld-server-docker by Thijs van Loef"
+      - SERVER_DESCRIPTION="palworld-server-docker by Thijs van Loef"
+    volumes:
+      - /root/palworld:/palworld
