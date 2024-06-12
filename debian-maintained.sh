@@ -185,18 +185,27 @@ modify_tmp_size() {
     echo "       修改 /tmp 大小       "
     echo "==============================="
     read -p "请输入新的 /tmp 大小（以MB为单位，建议不小于您预期的使用量）: " new_tmp_size
+
     if ! [[ $new_tmp_size =~ ^[0-9]+$ ]]; then
-        echo "无效输入"
-        return
+        echo "无效输入，必须是一个整数。"
+        return 1
     fi
 
+    # 从 /etc/fstab 删除任何现有的 /tmp 条目
     sudo sed -i '/\/tmp/d' /etc/fstab
+
+    # 添加新的 /tmp 条目
     echo "tmpfs /tmp tmpfs defaults,size=${new_tmp_size}M 0 0" | sudo tee -a /etc/fstab
+
+    # 重新挂载 /tmp
     sudo mount -o remount /tmp
+
+    # 检查 /etc/fstab 中是否包含 /tmp，并且 /tmp 是否已挂载
     if grep -q "/tmp" /etc/fstab && mount | grep -q "/tmp"; then
         echo "/tmp 大小已修改为 ${new_tmp_size}MB"
     else
         echo "修改 /tmp 大小失败"
+        return 1
     fi
 }
 
