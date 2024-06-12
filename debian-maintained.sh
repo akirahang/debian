@@ -213,7 +213,7 @@ modify_tmp_size() {
 
 
 # 函数：快速部署基础容器
-deploy_basic_containers() {
+quick_deploy_menu() {
     echo "==============================="
     echo "   快速部署基础容器    "
     echo "==============================="
@@ -311,6 +311,9 @@ backup_container_volumes() {
     echo "所有相关映射目录已成功备份到 $backup_directory。"
     read -p "按 Enter 键返回 Docker 管理菜单..."
 }
+
+# 主菜单函数
+#!/bin/bash
 
 # 主菜单函数
 show_main_menu() {
@@ -417,44 +420,21 @@ system_settings_menu() {
         echo "==============================="
         echo "      系统设置       "
         echo "==============================="
-        echo "1. 添加SSH密钥"
-        echo "2. 返回上级菜单"
+        echo "1. 添加 SSH 密钥"
+        echo "2. 修改系统 DNS"
+        echo "3. 返回主菜单"
         echo "==============================="
-        read -p "请选择一个选项 (1-2): " settings_choice
+        read -p "请选择一个选项 (1-3): " settings_choice
 
         case $settings_choice in
             1) add_ssh_key ;;
-            2) break ;;
+            2) modify_dns_settings ;;
+            3) return ;;
             *) echo "无效选项，请重试"; sleep 2 ;;
         esac
-        read -p "按 Enter 键返回系统设置菜单..."
     done
 }
 
-quick_deploy_menu() {
-    while true; do
-        clear
-        echo "==============================="
-        echo "      快速部署       "
-        echo "==============================="
-        echo "1. 快速部署基础容器"
-        echo "2. 返回上级菜单"
-        echo "==============================="
-        read -p "请选择一个选项 (1-2): " deploy_choice
-
-        case $deploy_choice in
-            1) deploy_basic_containers ;;
-            2) break ;;
-            *) echo "无效选项，请重试"; sleep 2 ;;
-        esac
-        read -p "按 Enter 键返回快速部署菜单..."
-    done
-}
-
-# 运行主菜单
-show_main_menu
-
-
-# 运行主菜单
+# 主程序入口，运行主菜单
 show_main_menu
 
