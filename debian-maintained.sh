@@ -351,19 +351,21 @@ docker_management_menu() {
         echo "      Docker 管理       "
         echo "==============================="
         echo "1. 安装 Docker 和 Docker Compose"
-        echo "2. 清除所有容器日志"
-        echo "3. 删除特定 Docker 容器和相关映射目录"
-        echo "4. 备份 Docker 容器映射目录"
-        echo "5. 返回上级菜单"
+        echo "2. 部署云服务" 
+        echo "3. 清除所有容器日志"
+        echo "4. 删除特定 Docker 容器和相关映射目录"
+        echo "5. 备份 Docker 容器映射目录"
+        echo "6. 返回上级菜单"
         echo "==============================="
-        read -p "请选择一个选项 (1-5): " docker_choice
+        read -p "请选择一个选项 (1-6): " docker_choice
 
         case $docker_choice in
             1) install_docker_and_compose ;;
-            2) clear_container_logs ;;
-            3) delete_container ;;
-            4) backup_container_volumes ;;
-            5) break ;;
+            2) deploy_cloud_service ;;
+            3) clear_container_logs ;;
+            4) delete_container ;;
+            5) backup_container_volumes ;;
+            6) break ;;
             *) echo "无效选项，请重试"; sleep 2 ;;
         esac
         read -p "按 Enter 键返回 Docker 管理菜单..."
@@ -482,6 +484,45 @@ modify_dns_settings() {
     cat /etc/resolv.conf
 
     read -p "按Enter键返回系统设置菜单..."
+}
+
+# 函数：部署云服务
+deploy_cloud_service() {
+    # 调用检查并安装 sudo 函数
+    check_and_install_sudo
+
+    # 在这里编写部署云服务的具体命令，示例中使用 docker-compose 部署
+    # 可根据实际情况修改和扩展这部分内容
+    echo "正在下载 Docker Compose 文件..."
+    COMPOSE_URL="https://github.com/akirahang/debian/raw/main/%E5%BA%94%E7%94%A8%E5%A4%87%E4%BB%BDdocker-compose.yml"
+    COMPOSE_FILE="docker-compose.yml"
+    curl -sSLO $COMPOSE_URL
+    if [ ! -f "$COMPOSE_FILE" ]; then
+        echo "下载文件失败。请检查链接是否正确或者网络连接是否正常。"
+        exit 1
+    fi
+
+    # 显示容器配置的序号和名称
+    echo "请选择要安装的容器："
+    echo "------------------------------------"
+    awk '/^\s*[a-zA-Z0-9_\-]+:/ {gsub(":", ""); print NR, $1}' $COMPOSE_FILE
+    echo "------------------------------------"
+    read -p "请输入要安装的容器序号：" SERVICE_INDEX
+
+    # 根据用户输入的序号获取容器名称
+    SERVICE_NAME=$(awk 'NR=='$SERVICE_INDEX' && /^\s*[a-zA-Z0-9_\-]+:/ {gsub(":", ""); print $1}' $COMPOSE_FILE)
+
+    # 检查用户输入的序号是否有效
+    if [ -z "$SERVICE_NAME" ]; then
+        echo "错误：未找到序号为 '$SERVICE_INDEX' 的容器。"
+        exit 1
+    fi
+
+    # 执行安装部署操作
+    echo "正在部署容器 '$SERVICE_NAME'..."
+    docker-compose -f $COMPOSE_FILE up -d $SERVICE_NAME
+
+    echo "容器 '$SERVICE_NAME' 已成功部署。"
 }
 
 # 主程序入口，运行主菜单
