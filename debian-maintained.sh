@@ -268,20 +268,20 @@ show_main_menu() {
         echo "      脚本功能列表       "
         echo "==============================="
         echo "1. Docker 管理"
-        echo "2. 系统优化"
-        echo "3. 系统清理"
-        echo "4. 系统设置"
-        echo "5. 快速部署"
+        echo "2. 快速部署"
+        echo "3. 系统优化"
+        echo "4. 系统清理"
+        echo "5. 系统设置"
         echo "6. 退出"
         echo "==============================="
         read -p "请选择一个选项 (1-6): " main_choice
 
         case $main_choice in
             1) docker_management_menu ;;
-            2) system_optimization_menu ;;
-            3) system_cleanup_menu ;;
-            4) system_settings_menu ;;
-            5) quick_deploy_menu ;;
+            2) quick_deploy_menu ;;
+            3) system_optimization_menu ;;
+            4) system_cleanup_menu ;;
+            5) system_settings_menu ;;
             6) echo "退出脚本"; exit 0 ;;
             *) echo "无效选项，请重试"; sleep 2 ;;
         esac
@@ -298,15 +298,17 @@ docker_management_menu() {
         echo "1. 安装 Docker 和 Docker Compose"
         echo "2. 清除所有容器日志"
         echo "3. 删除特定 Docker 容器和相关映射目录"
-        echo "4. 返回上级菜单"
+        echo "4. 备份 Docker 容器映射目录"
+        echo "5. 返回上级菜单"
         echo "==============================="
-        read -p "请选择一个选项 (1-4): " docker_choice
+        read -p "请选择一个选项 (1-5): " docker_choice
 
         case $docker_choice in
             1) install_docker_and_compose ;;
             2) clear_container_logs ;;
             3) delete_container ;;
-            4) break ;;
+            4) backup_container_volumes ;;
+            5) break ;;
             *) echo "无效选项，请重试"; sleep 2 ;;
         esac
         read -p "按 Enter 键返回 Docker 管理菜单..."
@@ -396,6 +398,10 @@ quick_deploy_menu() {
         read -p "按 Enter 键返回快速部署菜单..."
     done
 }
+
+# 运行主菜单
+show_main_menu
+
 
 # 运行主菜单
 show_main_menu
