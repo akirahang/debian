@@ -487,30 +487,39 @@ modify_dns_settings() {
 }
 
 # 函数：部署云服务
+#!/bin/bash
+
+# 函数：检查并安装 sudo
+check_and_install_sudo() {
+    if ! command -v sudo &> /dev/null; then
+        echo "sudo 未安装，正在安装 sudo..."
+        apt update
+        apt install sudo -y
+    fi
+}
+
+# 函数：从云端读取 Docker Compose 文件并部署选择的服务
 deploy_cloud_service() {
     # 调用检查并安装 sudo 函数
     check_and_install_sudo
 
-    # 在这里编写部署云服务的具体命令，示例中使用 docker-compose 部署
-    # 可根据实际情况修改和扩展这部分内容
-    echo "正在下载 Docker Compose 文件..."
+    # 读取云端 Docker Compose 文件内容
     COMPOSE_URL="https://github.com/akirahang/debian/raw/main/%E5%BA%94%E7%94%A8%E5%A4%87%E4%BB%BDdocker-compose.yml"
-    COMPOSE_FILE="docker-compose.yml"
-    curl -sSLO $COMPOSE_URL
-    if [ ! -f "$COMPOSE_FILE" ]; then
-        echo "下载文件失败。请检查链接是否正确或者网络连接是否正常。"
-        exit 1
-    fi
+    COMPOSE_CONTENT=$(curl -sSL $COMPOSE_URL)
 
-    # 显示容器配置的序号和名称
+    # 提取容器名称和对应的 container_name 值
     echo "请选择要安装的容器："
     echo "------------------------------------"
-    awk '/^\s*[a-zA-Z0-9_\-]+:/ {gsub(":", ""); print NR, $1}' $COMPOSE_FILE
+    CONTAINERS=$(echo "$COMPOSE_CONTENT" | awk '/^\s*container_name:/ {gsub(":", ""); print $2}')
+    IFS=$'\n' read -rd '' -a CONTAINER_NAMES <<<"$CONTAINERS"
+    for index in "${!CONTAINER_NAMES[@]}"; do
+        echo "$(($index + 1)). ${CONTAINER_NAMES[$index]}"
+    done
     echo "------------------------------------"
     read -p "请输入要安装的容器序号：" SERVICE_INDEX
 
     # 根据用户输入的序号获取容器名称
-    SERVICE_NAME=$(awk 'NR=='$SERVICE_INDEX' && /^\s*[a-zA-Z0-9_\-]+:/ {gsub(":", ""); print $1}' $COMPOSE_FILE)
+    SERVICE_NAME=${CONTAINER_NAMES[$(($SERVICE_INDEX - 1))]}
 
     # 检查用户输入的序号是否有效
     if [ -z "$SERVICE_NAME" ]; then
@@ -520,7 +529,7 @@ deploy_cloud_service() {
 
     # 执行安装部署操作
     echo "正在部署容器 '$SERVICE_NAME'..."
-    docker-compose -f $COMPOSE_FILE up -d $SERVICE_NAME
+    echo "$COMPOSE_CONTENT" | docker-compose -f - up -d "$SERVICE_NAME"
 
     echo "容器 '$SERVICE_NAME' 已成功部署。"
 }
