@@ -346,7 +346,7 @@ restore_container_volumes() {
 
     # 列出备份目录中的所有备份文件
     echo "正在列出备份目录中的所有备份文件..."
-    backup_files=($(ls $backup_directory/*.tar.gz 2>/dev/null))
+    backup_files=($(ls "$backup_directory"/*.tar.gz 2>/dev/null))
     if [ ${#backup_files[@]} -eq 0 ]; then
         echo "没有找到任何备份文件。"
         return
@@ -380,6 +380,9 @@ restore_container_volumes() {
     # 获取容器的名称
     container_name=$(docker inspect --format='{{.Name}}' "$container_id" | sed 's#^/##')
 
+    # 输出容器名称供用户选择
+    echo "要恢复的容器名称：$container_name"
+
     # 获取容器的映射目录
     container_mounts=$(docker inspect --format='{{json .Mounts}}' "$container_id")
 
@@ -388,7 +391,7 @@ restore_container_volumes() {
     mapfile -t directories < <(echo "$container_mounts" | jq -r '.[].Source')
 
     # 停止容器
-    docker stop $container_id
+    docker stop "$container_id"
 
     # 恢复每个映射目录
     for directory in "${directories[@]}"; do
@@ -398,11 +401,12 @@ restore_container_volumes() {
     done
 
     # 重启容器
-    docker start $container_id
+    docker start "$container_id"
 
     echo "所有相关映射目录已成功恢复。"
     read -p "按 Enter 键返回 Docker 管理菜单..."
 }
+
 
 quick_deploy_menu() {
     while true; do
