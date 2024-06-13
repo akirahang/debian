@@ -119,3 +119,14 @@ services:
     volumes:
       - /root/xrayr:/etc/XrayR
     network_mode: host      
+    
+  ztncui:
+    image: keynetworks/ztncui
+    container_name: ztncui
+    restart: always
+    ports:
+      - "3443:3443"
+    volumes:
+      - /root/ztncui:/opt/key-networks/ztncui/etc/
+      - /root/ztncui:/var/lib/zerotier-one/
+    
