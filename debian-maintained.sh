@@ -88,6 +88,15 @@ update_and_clean_system() {
     echo "==============================="
     echo "    更新和清理系统    "
     echo "==============================="
+
+    if ! command -v sudo &> /dev/null; then
+        echo "sudo 未安装，正在安装 sudo..."
+        apt update -y
+        apt install -y sudo
+    else
+        echo "sudo 已安装"
+    fi
+
     echo "更新和清理系统..."
     sudo apt update -y
     sudo apt upgrade -y
