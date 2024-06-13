@@ -458,6 +458,11 @@ deploy_cloud_service() {
     # 调用检查并安装 sudo 函数
     check_and_install_sudo
 
+    # 检查并安装必要的组件
+    echo "检查并安装必要的组件..."
+    sudo apt update -y
+    sudo apt install -y curl awk
+
     # 读取云端 Docker Compose 文件内容
     COMPOSE_URL="https://github.com/akirahang/debian/raw/main/server-compose.yml"
     COMPOSE_CONTENT=$(curl -sSL $COMPOSE_URL)
