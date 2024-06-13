@@ -10,7 +10,7 @@ cd /root
 # 获取 Xboard Docker Compose 文件
 echo "正在获取 Xboard Docker Compose 文件..."
 git clone -b docker-compose --depth 1 https://github.com/cedar2025/Xboard xboard
-cd xboard
+cd /root/xboard
 echo "Xboard Docker Compose 文件获取完成"
 
 # 执行数据库安装命令
