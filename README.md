@@ -4,11 +4,9 @@
 ```
 wget -O /root/debian-maintained.sh https://github.com/akirahang/debian/raw/main/debian-maintained.sh && chmod a+x debian-maintained.sh && bash debian-maintained.sh
 ```
-# Fedora 
-
-维护
+K8s部署
 ```
-wget -O /root/fedora-maintained.sh https://github.com/akirahang/debian/raw/main/fedora-maintained.sh && chmod a+x fedora-maintained.sh && bash fedora-maintained.sh
+wget -O /root/k8s-install.sh https://github.com/akirahang/debian/raw/main/k8s-install.sh && chmod a+x k8s-install.sh && bash k8s-install.sh
 ```
 
 # 快速部署 
