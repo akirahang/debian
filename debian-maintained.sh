@@ -491,9 +491,9 @@ deploy_cloud_service() {
         exit 1
     fi
 
-    # 执行安装部署操作
+    # 执行安装部署操作，并输出详细信息到标准输出
     echo "正在部署容器 '$SERVICE_NAME'..."
-    echo "$COMPOSE_CONTENT" | docker-compose -f - up -d "$SERVICE_NAME" > /dev/null 2>&1
+    docker-compose -f <(echo "$COMPOSE_CONTENT") up -d "$SERVICE_NAME"
 
     # 检查部署是否成功
     if [ $? -eq 0 ]; then
