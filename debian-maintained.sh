@@ -472,6 +472,8 @@ deploy_cloud_service() {
     fi
 
     # 提取容器名称和对应的 container_name 值
+    echo "请选择要安装的容器："
+    echo "------------------------------------"
     CONTAINERS=$(echo "$COMPOSE_CONTENT" | awk '/^\s*container_name:/ {gsub(":", ""); print $2}')
     IFS=$'\n' read -rd '' -a CONTAINER_NAMES <<<"$CONTAINERS"
     for index in "${!CONTAINER_NAMES[@]}"; do
