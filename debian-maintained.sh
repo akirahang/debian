@@ -272,6 +272,8 @@ EOF
     fi
 }
 
+backup_directory="/root/docker_backup"
+
 # 函数：备份Docker容器的映射目录
 backup_container_volumes() {
     clear
@@ -284,6 +286,7 @@ backup_container_volumes() {
     echo "正在列出当前正在运行的Docker容器..."
     running_containers=$(docker ps --format "{{.ID}}: {{.Names}}")
     echo "$running_containers"
+    echo
 
     # 提示用户选择要备份的容器
     read -p "请输入要备份的容器编号或名称前四位: " container_input
@@ -306,7 +309,6 @@ backup_container_volumes() {
     mapfile -t directories < <(echo "$container_mounts" | jq -r '.[].Source')
 
     # 检查备份目录是否存在，如果不存在则创建
-    backup_directory="/root/docker_backup"
     if [ ! -d "$backup_directory" ]; then
         echo "备份目录 $backup_directory 不存在，正在创建..."
         sudo mkdir -p "$backup_directory"
@@ -322,6 +324,74 @@ backup_container_volumes() {
     done
 
     echo "所有相关映射目录已成功备份到 $backup_directory。"
+    read -p "按 Enter 键返回 Docker 管理菜单..."
+}
+
+# 函数：恢复Docker容器的映射目录
+restore_container_volumes() {
+    clear
+    echo "==============================="
+    echo "  恢复Docker容器的映射目录  "
+    echo "==============================="
+    echo
+
+    # 列出备份目录中的所有备份文件
+    echo "正在列出备份目录中的所有备份文件..."
+    backup_files=($(ls $backup_directory/*.tar.gz 2>/dev/null))
+    if [ ${#backup_files[@]} -eq 0 ]; then
+        echo "没有找到任何备份文件。"
+        return
+    fi
+
+    for i in "${!backup_files[@]}"; do
+        echo "$i) ${backup_files[$i]}"
+    done
+    echo
+
+    # 提示用户选择要恢复的备份文件
+    read -p "请输入要恢复的备份文件序号: " file_index
+
+    if [[ $file_index -ge 0 && $file_index -lt ${#backup_files[@]} ]]; then
+        backup_file=${backup_files[$file_index]}
+    else
+        echo "无效的序号。"
+        return
+    fi
+
+    # 提示用户输入要恢复到的容器编号或名称前四位
+    read -p "请输入要恢复到的容器编号或名称前四位: " container_input
+
+    # 检查用户输入的容器编号前四位是否有效
+    container_id=$(docker ps -q --no-trunc -f "id=${container_input:0:4}" -f status=running)
+    if [[ -z "$container_id" ]]; then
+        echo "无效的容器编号前四位。"
+        return
+    fi
+
+    # 获取容器的名称
+    container_name=$(docker inspect --format='{{.Name}}' "$container_id" | sed 's#^/##')
+
+    # 获取容器的映射目录
+    container_mounts=$(docker inspect --format='{{json .Mounts}}' "$container_id")
+
+    # 解析容器的映射目录路径
+    declare -a directories=()
+    mapfile -t directories < <(echo "$container_mounts" | jq -r '.[].Source')
+
+    # 停止容器
+    docker stop $container_id
+
+    # 恢复每个映射目录
+    for directory in "${directories[@]}"; do
+        echo "正在恢复映射目录 $directory 从 $backup_file..."
+        sudo tar -xzf "$backup_file" -C "$directory" > /dev/null 2>&1
+        echo "恢复完成！"
+    done
+
+    # 重启容器
+    docker start $container_id
+
+    echo "所有相关映射目录已成功恢复。"
     read -p "按 Enter 键返回 Docker 管理菜单..."
 }
 
@@ -490,6 +560,26 @@ show_main_menu() {
     done
 }
 
+backup_restore_menu() {
+    while true; do
+        clear
+        echo "==============================="
+        echo "       Docker 备份/恢复菜单   "
+        echo "==============================="
+        echo "1) 备份Docker容器的映射目录"
+        echo "2) 恢复Docker容器的映射目录"
+        echo "3) 返回上级菜单"
+        echo
+        read -p "请输入选项 (1/2/3): " choice
+        case $choice in
+            1) backup_container_volumes ;;
+            2) restore_container_volumes ;;
+            3) break ;;
+            *) echo "无效选项，请重试。" ; read -p "按 Enter 键继续..." ;;
+        esac
+    done
+}
+
 docker_management_menu() {
     while true; do
         clear
@@ -500,7 +590,7 @@ docker_management_menu() {
         echo "2. 部署云服务" 
         echo "3. 清除所有容器日志"
         echo "4. 删除特定 Docker 容器和相关映射目录"
-        echo "5. 备份 Docker 容器映射目录"
+        echo "5. 备份/恢复 Docker 容器映射目录"
         echo "6. 返回上级菜单"
         echo "==============================="
         read -p "请选择一个选项 (1-6): " docker_choice
@@ -510,13 +600,14 @@ docker_management_menu() {
             2) deploy_cloud_service ;;
             3) clear_container_logs ;;
             4) delete_container ;;
-            5) backup_container_volumes ;;
+            5) backup_restore_menu ;;
             6) break ;;
             *) echo "无效选项，请重试"; sleep 2 ;;
         esac
         read -p "按 Enter 键返回 Docker 管理菜单..."
     done
 }
+
 
 system_optimization_menu() {
     while true; do
