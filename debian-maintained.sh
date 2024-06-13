@@ -455,14 +455,6 @@ modify_dns_settings() {
 
 # 函数：从云端读取 Docker Compose 文件并部署选择的服务
 deploy_cloud_service() {
-    # 调用检查并安装 sudo 函数
-    check_and_install_sudo
-
-    # 检查并安装必要的组件
-    echo "检查并安装必要的组件..."
-    sudo apt update -y
-    sudo apt install -y curl awk
-
     # 读取云端 Docker Compose 文件内容
     COMPOSE_URL="https://github.com/akirahang/debian/raw/main/server-compose.yml"
     COMPOSE_CONTENT=$(curl -sSL $COMPOSE_URL)
@@ -476,7 +468,7 @@ deploy_cloud_service() {
     # 提取容器名称和对应的 container_name 值
     echo "请选择要安装的容器："
     echo "------------------------------------"
-    CONTAINERS=$(echo "$COMPOSE_CONTENT" | awk '/^\s*container_name:/ {gsub(":", ""); print $2}')
+    CONTAINERS=$(echo "$COMPOSE_CONTENT" | sed -n '/^\s*container_name:/ {s/^\s*container_name:\s*//; p}')
     
     # 输出调试信息
     echo "提取的容器名称：$CONTAINERS"
