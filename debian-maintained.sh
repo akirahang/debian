@@ -91,7 +91,7 @@ update_and_clean_system() {
     echo "更新和清理系统..."
     sudo apt update -y
     sudo apt upgrade -y
-    sudo apt install -y curl neofetch vim jq
+    sudo apt install -y curl neofetch vim jq git
     sudo apt autoclean
     sudo apt autoremove -y
     sudo find /var/log -type f -delete
