@@ -477,21 +477,29 @@ deploy_cloud_service() {
     echo "请选择要安装的容器："
     echo "------------------------------------"
     CONTAINERS=$(echo "$COMPOSE_CONTENT" | awk '/^\s*container_name:/ {gsub(":", ""); print $2}')
+    
+    # 输出调试信息
+    echo "提取的容器名称：$CONTAINERS"
+
     IFS=$'\n' read -rd '' -a CONTAINER_NAMES <<<"$CONTAINERS"
+    if [ ${#CONTAINER_NAMES[@]} -eq 0 ]; then
+        echo "错误：未能提取任何容器名称。"
+        exit 1
+    fi
+
     for index in "${!CONTAINER_NAMES[@]}"; do
         echo "$(($index + 1)). ${CONTAINER_NAMES[$index]}"
     done
     echo "------------------------------------"
     read -p "请输入要安装的容器序号：" SERVICE_INDEX
 
-    # 根据用户输入的序号获取容器名称
-    SERVICE_NAME=${CONTAINER_NAMES[$(($SERVICE_INDEX - 1))]}
-
     # 检查用户输入的序号是否有效
-    if [ -z "$SERVICE_NAME" ]; then
-        echo "错误：未找到序号为 '$SERVICE_INDEX' 的容器。"
+    if ! [[ "$SERVICE_INDEX" =~ ^[0-9]+$ ]] || [ "$SERVICE_INDEX" -le 0 ] || [ "$SERVICE_INDEX" -gt ${#CONTAINER_NAMES[@]} ]; then
+        echo "错误：无效的序号 '$SERVICE_INDEX'。"
         exit 1
     fi
+
+    SERVICE_NAME=${CONTAINER_NAMES[$(($SERVICE_INDEX - 1))]}
 
     # 执行安装部署操作，并输出详细信息到标准输出
     echo "正在部署容器 '$SERVICE_NAME'..."
