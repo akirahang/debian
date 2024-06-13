@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # 欢迎信息和输入配置
 echo "欢迎使用 Kubernetes 安装脚本"
 echo "这个脚本将帮助您在 Debian 系统上安装 Kubernetes 主节点和工作节点，并安装 Kubernetes Dashboard 进行集群管理"
@@ -13,7 +15,7 @@ if [ "$NODE_ROLE" != "master" ] && [ "$NODE_ROLE" != "worker" ]; then
     exit 1
 fi
 
-# 设置用户名和密码
+# 设置用户名和密码（仅适用于主节点）
 if [ "$NODE_ROLE" == "master" ]; then
     read -p "请输入您想要创建的 Dashboard 用户名: " USERNAME
     read -s -p "请输入密码: " PASSWORD
@@ -34,20 +36,20 @@ sudo systemctl start docker
 
 # 添加 Kubernetes 源并安装 kubeadm, kubelet 和 kubectl
 echo "添加 Kubernetes APT 源..."
-curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/kubernetes-archive-keyring.gpg
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list > /dev/null
 
 sudo apt update
 sudo apt install -y kubelet kubeadm kubectl
 
-# 配置 cgroup 驱动程序
+# 配置 cgroup 驱动程序为 systemd
 echo "配置 cgroup 驱动程序为 systemd..."
 sudo sed -i '/^GRUB_CMDLINE_LINUX=/ s/"$/ systemd.unified_cgroup_hierarchy=1"/' /etc/default/grub
 sudo update-grub
 sudo systemctl daemon-reload
 sudo systemctl restart kubelet
 
-# 初始化 Kubernetes 主节点
+# 初始化 Kubernetes 主节点（仅适用于主节点）
 if [ "$NODE_ROLE" == "master" ]; then
     echo "初始化 Kubernetes 主节点..."
     sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --ignore-preflight-errors=all
@@ -102,10 +104,11 @@ EOF
     # 显示加入节点命令
     echo ""
     echo "Kubernetes 主节点初始化完成，请将以下命令复制到工作节点上以加入集群："
-    sudo kubeadm token create --print-join-command
+    sudo kubeadm token create --print-join-command > join-command.sh
+    chmod +x join-command.sh
 fi
 
-# 加入 Kubernetes 工作节点
+# 加入 Kubernetes 工作节点（仅适用于工作节点）
 if [ "$NODE_ROLE" == "worker" ]; then
     read -p "请输入主节点初始化后生成的加入命令: " JOIN_COMMAND
     sudo $JOIN_COMMAND
