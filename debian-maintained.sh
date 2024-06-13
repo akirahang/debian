@@ -471,13 +471,7 @@ deploy_cloud_service() {
         exit 1
     fi
 
-    # 输出文件内容进行调试
-    echo "Docker Compose 文件内容："
-    echo "$COMPOSE_CONTENT"
-
     # 提取容器名称和对应的 container_name 值
-    echo "请选择要安装的容器："
-    echo "------------------------------------"
     CONTAINERS=$(echo "$COMPOSE_CONTENT" | awk '/^\s*container_name:/ {gsub(":", ""); print $2}')
     IFS=$'\n' read -rd '' -a CONTAINER_NAMES <<<"$CONTAINERS"
     for index in "${!CONTAINER_NAMES[@]}"; do
@@ -497,7 +491,7 @@ deploy_cloud_service() {
 
     # 执行安装部署操作
     echo "正在部署容器 '$SERVICE_NAME'..."
-    echo "$COMPOSE_CONTENT" | docker-compose -f - up -d "$SERVICE_NAME"
+    echo "$COMPOSE_CONTENT" | docker-compose -f - up -d "$SERVICE_NAME" > /dev/null 2>&1
 
     # 检查部署是否成功
     if [ $? -eq 0 ]; then
