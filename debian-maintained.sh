@@ -498,6 +498,11 @@ deploy_cloud_service() {
     # 检查部署是否成功
     if [ $? -eq 0 ]; then
         echo "容器 '$SERVICE_NAME' 已成功部署。"
+
+        # 获取容器的映射端口信息并显示
+        CONTAINER_PORTS=$(docker-compose -f <(echo "$COMPOSE_CONTENT") port "$SERVICE_NAME")
+        echo "容器 '$SERVICE_NAME' 的映射端口如下："
+        echo "$CONTAINER_PORTS"
     else
         echo "错误：部署容器 '$SERVICE_NAME' 失败。"
     fi
