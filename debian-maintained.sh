@@ -444,18 +444,6 @@ modify_dns_settings() {
     read -p "按Enter键返回系统设置菜单..."
 }
 
-# 函数：部署云服务
-#!/bin/bash
-
-# 函数：检查并安装 sudo
-check_and_install_sudo() {
-    if ! command -v sudo &> /dev/null; then
-        echo "sudo 未安装，正在安装 sudo..."
-        apt update
-        apt install sudo -y
-    fi
-}
-
 # 函数：从云端读取 Docker Compose 文件并部署选择的服务
 deploy_cloud_service() {
     # 调用检查并安装 sudo 函数
@@ -500,9 +488,14 @@ deploy_cloud_service() {
         echo "容器 '$SERVICE_NAME' 已成功部署。"
 
         # 获取容器的映射端口信息并显示
-        CONTAINER_PORTS=$(docker-compose -f <(echo "$COMPOSE_CONTENT") port "$SERVICE_NAME")
         echo "容器 '$SERVICE_NAME' 的映射端口如下："
-        echo "$CONTAINER_PORTS"
+        if grep -q "network_mode: host" <<< "$COMPOSE_CONTENT"; then
+            HOST_PORTS=$(docker ps --format "{{.Ports}}" --filter "name=$SERVICE_NAME")
+            echo "$HOST_PORTS"
+        else
+            CONTAINER_PORTS=$(docker-compose -f <(echo "$COMPOSE_CONTENT") port "$SERVICE_NAME")
+            echo "$CONTAINER_PORTS"
+        fi
     else
         echo "错误：部署容器 '$SERVICE_NAME' 失败。"
     fi
