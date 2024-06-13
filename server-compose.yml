@@ -9,11 +9,12 @@ services:
       - "86:80"
 
   alist:
-    image: xhofe/alist
+    image: xhofe/alist-aria2
     container_name: alist
     restart: always
     ports:
       - "5244:5244"
+      - "6800:6800"
     environment:
       - PUID=0
       - PGID=0
