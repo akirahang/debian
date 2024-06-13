@@ -126,6 +126,7 @@ services:
     restart: always
     ports:
       - "3443:3443"
+      - "9993:9993"
     volumes:
       - /root/ztncui:/opt/key-networks/ztncui/etc/
       - /root/ztncui:/var/lib/zerotier-one/
