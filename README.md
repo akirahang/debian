@@ -8,6 +8,11 @@ K8s部署
 ```
 wget -O /root/k8s-install.sh https://github.com/akirahang/debian/raw/main/k8s-install.sh && chmod a+x k8s-install.sh && bash k8s-install.sh
 ```
+Xboard部署
+```
+wget -O /root/xboard-install.sh https://github.com/akirahang/debian/raw/main/xboard-install.sh && chmod a+x xboard-install.sh && bash xboard-install.sh
+```
+
 
 # 快速部署 
 
