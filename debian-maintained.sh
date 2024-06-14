@@ -378,6 +378,22 @@ restore_container_volumes() {
         return
     fi
 
+    # 列出当前运行的容器
+    echo "正在列出当前运行的容器..."
+    containers=($(docker ps --format "{{.ID}} {{.Names}}"))
+
+    if [ ${#containers[@]} -eq 0 ]; then
+        echo "没有正在运行的容器。"
+        return
+    fi
+
+    for ((i=0; i<${#containers[@]}; i+=2)); do
+        container_id=${containers[i]}
+        container_name=${containers[i+1]}
+        echo "$container_id: $container_name"
+    done
+    echo
+
     # 提示用户输入要恢复到的容器编号或名称前四位
     read -p "请输入要恢复到的容器编号或名称前四位: " container_input
 
