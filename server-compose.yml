@@ -131,5 +131,12 @@ services:
       - "6881:6881"
       - "6881:6881/udp"
     restart: unless-stopped
-      
+    
+  frps:
+    image: snowdreamtech/frps
+    container_name: frps
+    restart: always
+    network_mode: host
+    volumes:
+      - /root/frp/frps.toml:/etc/frp/frps.toml
     
