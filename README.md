@@ -20,3 +20,7 @@ NPS部署
 ```
 wget -O /root/nps.sh https://github.com/akirahang/debian/raw/main/nps.sh && chmod a+x nps.sh && bash nps.sh
 ```
+NPC部署
+```
+wget -O /root/npc.sh https://github.com/akirahang/debian/raw/main/npc.sh && chmod a+x npc.sh && bash npc.sh
+```
