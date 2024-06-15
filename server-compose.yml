@@ -132,4 +132,13 @@ services:
       - "6881:6881/udp"
     restart: unless-stopped
     
+  kodbox:
+    image: kodcloud/kodbox
+    container_name: kodbox
+    ports:
+      - "89:80"
+    volumes:
+      - /root/kodbox:/var/www/html
+    restart: unless-stopped    
+    
 
