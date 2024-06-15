@@ -131,4 +131,34 @@ services:
       - "6881:6881"
       - "6881:6881/udp"
     restart: unless-stopped
+    
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: your_root_password
+      MYSQL_DATABASE: your_database
+      MYSQL_USER: your_user
+      MYSQL_PASSWORD: your_password
+      MYSQL_ROOT_HOST: '%'
+    ports:
+      - "3306:3306"  # 映射MySQL端口到主机
+    volumes:
+      - /root/mysql:/var/lib/mysql  # 将主机目录映射到容器目录
+    networks:
+      - my_network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
+    restart: always
+    ports:
+      - '8080:80'  # 映射phpMyAdmin端口到主机
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: your_root_password
+    networks:
+      - my_network
+    
 
