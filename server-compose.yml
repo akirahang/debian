@@ -12,7 +12,7 @@ services:
   alist:
     image: xhofe/alist-aria2
     container_name: alist
-    restart: always
+    restart: unless-stopped
     ports:
       - "5244:5244"
       - "6800:6800"
