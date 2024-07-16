@@ -177,3 +177,12 @@ services:
     volumes:
       - './data:/root/vocechat' 
     image: privoce/vocechat-server:latest
+    
+  xui:
+    image: enwaiax/x-ui
+    container_name: xui
+    volumes:
+      - /root/xui/db/:/etc/x-ui/
+      - /root/xui/cert/:/root/cert/
+    restart: unless-stopped
+    network_mode: host    
