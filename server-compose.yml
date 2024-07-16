@@ -11,7 +11,7 @@ services:
       - "53:53/tcp"
       - "53:53/udp"
       - "3000:3000/tcp"
-      
+
   alist:
     image: xhofe/alist-aria2
     container_name: alist
@@ -25,7 +25,7 @@ services:
       - UMASK=022
     volumes:
       - /etc/alist:/opt/alist/data
-      
+
   aapanel:
     image: aapanel/aapanel:lnmp
     container_name: aapanel
@@ -35,7 +35,7 @@ services:
       - /root/website_data:/www/wwwroot
       - /root/mysql_data:/www/server/data
       - /root/vhost:/www/server/panel/vhost
-      
+
   calibre-web:
     image: lscr.io/linuxserver/calibre-web:latest
     container_name: calibre-web
@@ -51,7 +51,7 @@ services:
     ports:
       - 8083:8083
     restart: unless-stopped
-      
+
   kodbox:
     image: kodcloud/kodbox
     container_name: kodbox
@@ -60,7 +60,7 @@ services:
     volumes:
       - /root/kodbox:/var/www/html
     restart: unless-stopped
-      
+
   mcserver:
     image: marctv/minecraft-papermc-server:latest
     container_name: mcserver
@@ -73,7 +73,7 @@ services:
     ports:
       - 25565:25565
     tty: true
-      
+
   nginx:
     image: jc21/nginx-proxy-manager
     container_name: nginx
@@ -82,7 +82,7 @@ services:
     volumes:
       - /root/data:/data
       - /root/letsencrypt:/etc/letsencrypt
-      
+
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
@@ -100,7 +100,7 @@ services:
       - 6881:6881
       - 6881:6881/udp
     restart: unless-stopped
-      
+
   qinglong:
     image: whyour/qinglong
     container_name: qinglong
@@ -110,7 +110,7 @@ services:
       - 5700:5700
     volumes:
       - /root/ql/data:/ql/data
-      
+
   tor-privoxy:
     image: dockage/tor-privoxy:latest
     container_name: tor-privoxy
@@ -119,7 +119,7 @@ services:
       - 9051:9051
       - 8118:8118
     restart: unless-stopped
-      
+
   vaultwarden:
     image: vaultwarden/server:latest
     container_name: vaultwarden
@@ -128,7 +128,7 @@ services:
       - /root/vw-data:/data
     ports:
       - 86:80
-      
+
   watchtower:
     image: containrrr/watchtower
     container_name: watchtower
@@ -136,7 +136,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
     command: --cleanup
-      
+
   wg-easy:
     image: ghcr.io/wg-easy/wg-easy
     container_name: wg-easy
@@ -156,7 +156,7 @@ services:
     sysctls:
       - net.ipv4.ip_forward=1
       - net.ipv4.conf.all.src_valid_mark=1
-      
+
   photoprism:
     image: photoprism/photoprism
     container_name: photoprism
@@ -167,4 +167,13 @@ services:
     volumes:
       - /root/photoprism/config:/photoprism/storage
       - /root/photoprism/photos:/photoprism/originals
-    restart: unless-stopped      
+    restart: unless-stopped
+
+  vocechat:
+    restart: always
+    ports:
+      - '3019:3000'
+    container_name: vocechat-server
+    volumes:
+      - './data:/root/vocechat' 
+    image: privoce/vocechat-server:latest
