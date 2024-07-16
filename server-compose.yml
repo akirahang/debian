@@ -170,7 +170,7 @@ services:
     restart: unless-stopped
 
   vocechat:
-    restart: always
+    restart: unless-stopped
     ports:
       - '3019:3000'
     container_name: vocechat-server
