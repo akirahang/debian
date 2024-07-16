@@ -169,13 +169,13 @@ services:
     restart: unless-stopped
 
   vocechat:
+    image: privoce/vocechat-server:latest
+    container_name: vocechat-server
     restart: unless-stopped
     ports:
       - '3019:3000'
-    container_name: vocechat-server
     volumes:
       - '/root/vocechat:/home/vocechat-server/data' 
-    image: privoce/vocechat-server:latest
     
   xui:
     image: enwaiax/x-ui
