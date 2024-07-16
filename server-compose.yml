@@ -156,3 +156,15 @@ services:
     sysctls:
       - net.ipv4.ip_forward=1
       - net.ipv4.conf.all.src_valid_mark=1
+      
+  photoprism:
+    image: photoprism/photoprism
+    container_name: photoprism
+    ports:
+      - "2342:2342"
+    environment:
+      - PHOTOPRISM_ADMIN_PASSWORD=photoprism
+    volumes:
+      - /root/photoprism/config:/photoprism/storage
+      - /root/photoprism/photos:/photoprism/originals
+    restart: unless-stopped      
