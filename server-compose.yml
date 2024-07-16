@@ -174,7 +174,7 @@ services:
       - '3019:3000'
     container_name: vocechat-server
     volumes:
-      - './data:/root/vocechat' 
+      - '/root/vocechat:/home/vocechat-server/data' 
     image: privoce/vocechat-server:latest
     
   xui:
