@@ -139,6 +139,15 @@ services:
       - "89:80"
     volumes:
       - /root/kodbox:/var/www/html
-    restart: unless-stopped    
+    restart: unless-stopped
+    
+  tor-privoxy:
+    image: dockage/tor-privoxy:latest
+    container_name: tor-privoxy
+    ports:
+      - "9050:9050"
+      - "9051:9051"
+      - "8118:8118"
+    restart: unless-stopped 
     
 
