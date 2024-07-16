@@ -165,8 +165,7 @@ services:
     environment:
       - PHOTOPRISM_ADMIN_PASSWORD=photoprism
     volumes:
-      - /root/photoprism/config:/photoprism/storage
-      - /root/photoprism/photos:/photoprism/originals
+      - /root/photoprism:/photoprism
     restart: unless-stopped
 
   vocechat:
