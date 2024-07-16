@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # 函数：检查并安装 sudo
@@ -344,6 +345,17 @@ restore_container_volumes() {
     echo "==============================="
     echo
 
+    # 检查并提示输入备份目录路径
+    if [ -z "$backup_directory" ]; then
+        read -p "请输入备份目录路径: " backup_directory
+    fi
+
+    # 检查备份目录是否存在
+    if [ ! -d "$backup_directory" ]; then
+        echo "备份目录不存在。"
+        return
+    fi
+
     # 列出备份目录中的所有备份文件
     echo "正在列出备份目录中的所有备份文件..."
     backup_files=($(ls "$backup_directory"/*.tar.gz 2>/dev/null))
@@ -353,7 +365,7 @@ restore_container_volumes() {
     fi
 
     for i in "${!backup_files[@]}"; do
-        echo "$i) ${backup_files[$i]}"
+        echo "$i) $(basename "${backup_files[$i]}")"
     done
     echo
 
@@ -366,6 +378,22 @@ restore_container_volumes() {
         echo "无效的序号。"
         return
     fi
+
+    # 列出当前运行的容器
+    echo "正在列出当前运行的容器..."
+    containers=($(docker ps --format "{{.ID}} {{.Names}}"))
+
+    if [ ${#containers[@]} -eq 0 ]; then
+        echo "没有正在运行的容器。"
+        return
+    fi
+
+    for ((i=0; i<${#containers[@]}; i+=2)); do
+        container_id=${containers[i]}
+        container_name=${containers[i+1]}
+        echo "$container_id: $container_name"
+    done
+    echo
 
     # 提示用户输入要恢复到的容器编号或名称前四位
     read -p "请输入要恢复到的容器编号或名称前四位: " container_input
@@ -380,7 +408,7 @@ restore_container_volumes() {
     # 获取容器的名称
     container_name=$(docker inspect --format='{{.Name}}' "$container_id" | sed 's#^/##')
 
-    # 输出容器名称供用户选择
+    # 输出容器名称供用户确认
     echo "要恢复的容器名称：$container_name"
 
     # 获取容器的映射目录
@@ -391,22 +419,27 @@ restore_container_volumes() {
     mapfile -t directories < <(echo "$container_mounts" | jq -r '.[].Source')
 
     # 停止容器
+    echo "正在停止容器 $container_id..."
     docker stop "$container_id"
 
     # 恢复每个映射目录
     for directory in "${directories[@]}"; do
         echo "正在恢复映射目录 $directory 从 $backup_file..."
         sudo tar -xzf "$backup_file" -C "$directory" > /dev/null 2>&1
-        echo "恢复完成！"
+        if [ $? -eq 0 ]; then
+            echo "恢复 $directory 完成！"
+        else
+            echo "恢复 $directory 失败！"
+        fi
     done
 
     # 重启容器
+    echo "正在重启容器 $container_id..."
     docker start "$container_id"
 
     echo "所有相关映射目录已成功恢复。"
     read -p "按 Enter 键返回 Docker 管理菜单..."
 }
-
 
 quick_deploy_menu() {
     while true; do
