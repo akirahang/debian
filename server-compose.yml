@@ -200,3 +200,10 @@ services:
       "--lower_case_table_names=1"
     ]
     restart: unless-stopped    
+    
+  wordpress:
+    image: wordpress
+    container_name: some-wordpress
+    restart: unless-stopped
+    ports:
+      - "8080:80"    
