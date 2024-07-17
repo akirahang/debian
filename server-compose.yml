@@ -203,7 +203,7 @@ services:
     
   wordpress:
     image: wordpress
-    container_name: some-wordpress
+    container_name: wordpress
     restart: unless-stopped
     ports:
       - "8080:80"    
