@@ -229,12 +229,13 @@ services:
       
   wiz:
     image: wiznote/wizserver
-    container_name: wiznote
+    container_name: wiz
     restart: unless-stopped
     volumes:
       - /root/wizdata:/wiz/storage
-      - /etc/localtime:/etc/localtime 
+    environment:
+      - TZ=${TZ}
     ports:
-      - 7012:80
-      - 7013:9269/udp      
+      - "78:80"
+      - "9269:9269/udp"    
       
