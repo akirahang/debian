@@ -209,7 +209,7 @@ services:
       - "8089:80"  
       
   nextcloud:
-    image: nextcloud
+    image: linuxserver/nextcloud
     container_name: nextcloud
     ports:
         - 8090:80 //这里将容器内部的80端口映射到外部的8080端口
