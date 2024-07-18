@@ -212,7 +212,7 @@ services:
     image: linuxserver/nextcloud
     container_name: nextcloud
     ports:
-        - 8090:80
+      - "8090:80"
     volumes:
       - /root/nextcloud:/home/wwwroot/nextcloud
     restart: unless-stopped
