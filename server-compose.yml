@@ -229,6 +229,7 @@ services:
       
   wiz:
     image: wiznote/wizserver
+    container_name: wiznote
     restart: unless-stopped
     volumes:
       - /root/wizdata:/wiz/storage
