@@ -233,6 +233,7 @@ services:
     restart: unless-stopped
     volumes:
       - /root/wizdata:/wiz/storage
+      - /etc/localtime:/etc/localtime 
     ports:
       - 7012:80
       - 7013:9269/udp      
