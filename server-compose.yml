@@ -210,9 +210,9 @@ services:
       
   nextcloud:
     image: nextcloud
-    container_name: nextcloud_web
+    container_name: nextcloud
     ports:
         - 8090:80 //这里将容器内部的80端口映射到外部的8080端口
     volumes:
-      - /root/nextcloud:/home/wwwroot/nextcloud //将/home/wwwroot/nextcloud挂载到了容器内
+      - /root/nextcloud:/home/wwwroot/nextcloud
     restart: unless-stopped
