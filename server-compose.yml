@@ -216,3 +216,22 @@ services:
     volumes:
       - /root/nextcloud:/home/wwwroot/nextcloud
     restart: unless-stopped
+    
+  synctv:
+    image: 'synctvorg/synctv:latest'
+    container_name: synctv
+    restart: unless-stopped
+    ports:
+      - '8092:8080/tcp'
+      - '8092:8080/udp'
+    environment:
+      - PUID=0
+      - PGID=0
+      - UMASK=022
+      - TZ=Asia/Shanghai
+      - DATABASE_TYPE=mysql
+      - DATABASE_HOST=db
+      - DATABASE_PORT=3306
+      - DATABASE_USER=root
+      - DATABASE_PASSWORD=your_db_password
+      - DATABASE_NAME=synctv
