@@ -159,18 +159,33 @@ add_ssh_key() {
     echo "        添加SSH密钥       "
     echo "==============================="
     read -p "请输入用于SSH密钥登录的用户名: " username
-    if [ -z "$username" ];then
+    if [ -z "$username" ]; then
         echo "未提供用户名"
         return
     fi
 
-    server_ip=$(hostname -I | awk '{print $1}')
-    ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -N ""
-    curl -s https://raw.githubusercontent.com/cautious1064/ubuntu/main/authorized_keys | ssh "$username@$server_ip" "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
-    ssh "$username@$server_ip" "chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys"
-    sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
-    sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin without-password/' /etc/ssh/sshd_config
-    sudo service ssh restart
+    read -p "请输入目标服务器IP地址: " server_ip
+    if [ -z "$server_ip" ]; then
+        echo "未提供服务器IP地址"
+        return
+    fi
+
+    read -p "请输入公钥文件的路径: " pub_key_file
+    if [ ! -f "$pub_key_file" ]; then
+        echo "公钥文件不存在"
+        return
+    fi
+
+    # 将公钥上传到目标服务器
+    ssh "$username@$server_ip" "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys" < "$pub_key_file"
+
+    # 配置SSH服务器以禁用密码认证
+    ssh "$username@$server_ip" << EOF
+sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin without-password/' /etc/ssh/sshd_config
+sudo service ssh restart
+EOF
+
     echo "SSH密钥登录已配置"
 }
 
