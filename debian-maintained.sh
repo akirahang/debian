@@ -170,24 +170,35 @@ add_ssh_key() {
         return
     fi
 
-    read -p "请输入公钥文件的路径: " pub_key_file
+    pub_key_file="$HOME/.ssh/id_rsa.pub"
     if [ ! -f "$pub_key_file" ]; then
-        echo "公钥文件不存在"
+        echo "公钥文件 $pub_key_file 不存在"
         return
     fi
 
-    # 将公钥上传到目标服务器
-    ssh "$username@$server_ip" "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys" < "$pub_key_file"
+    echo "尝试通过密码登录目标服务器..."
+    ssh "$username@$server_ip" << 'EOF'
+# 创建.ssh目录并设置权限
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+EOF
 
-    # 配置SSH服务器以禁用密码认证
-    ssh "$username@$server_ip" << EOF
+    echo "上传公钥到目标服务器..."
+    cat "$pub_key_file" | ssh "$username@$server_ip" 'cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys'
+
+    echo "配置SSH服务器以启用密钥登录并禁用密码认证..."
+    ssh "$username@$server_ip" << 'EOF'
 sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
 sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin without-password/' /etc/ssh/sshd_config
-sudo service ssh restart
+sudo systemctl restart ssh
 EOF
 
     echo "SSH密钥登录已配置"
 }
+
+# 执行函数
+add_ssh_key
+
 
 # 函数：调整交换空间大小
 adjust_swap_space() {
