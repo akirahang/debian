@@ -196,9 +196,6 @@ EOF
     echo "SSH密钥登录已配置"
 }
 
-# 执行函数
-add_ssh_key
-
 
 # 函数：调整交换空间大小
 adjust_swap_space() {
