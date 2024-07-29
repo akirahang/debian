@@ -170,9 +170,13 @@ add_ssh_key() {
         return
     fi
 
-    pub_key_file="$HOME/.ssh/id_rsa.pub"
+    # 下载公钥文件
+    pub_key_url="https://raw.githubusercontent.com/akirahang/debian/main/authorized_keys"
+    pub_key_file="/tmp/authorized_keys"
+    curl -o "$pub_key_file" "$pub_key_url"
+
     if [ ! -f "$pub_key_file" ]; then
-        echo "公钥文件 $pub_key_file 不存在"
+        echo "无法下载公钥文件 $pub_key_url"
         return
     fi
 
@@ -194,7 +198,9 @@ sudo systemctl restart ssh
 EOF
 
     echo "SSH密钥登录已配置"
+    rm "$pub_key_file" # 删除临时下载的公钥文件
 }
+
 
 
 # 函数：调整交换空间大小
