@@ -189,17 +189,11 @@ services:
   mysql:
     image: mysql:5.7
     container_name: mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: admin123
     ports:
       - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: 123456
-      TZ: Asia/Shanghai
-    command: [
-      "--character-set-server=utf8mb4",
-      "--collation-server=utf8mb4_general_ci",
-      "--lower_case_table_names=1"
-    ]
-    restart: unless-stopped    
     
   wordpress:
     image: wordpress
