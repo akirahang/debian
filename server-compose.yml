@@ -238,7 +238,7 @@ services:
       
   redis:
     image: redis:latest
-    container_name: some-redis
+    container_name: redis
     command: redis-server --save 60 1 --loglevel warning --requirepass yourpassword
     restart: always
     ports:
