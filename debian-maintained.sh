@@ -19,7 +19,7 @@ install_docker_and_compose() {
 
     # 更新包列表并安装必要的依赖
     sudo apt update
-    sudo apt install -y apt-transport-https ca-certificates curl software-properties-common jq
+    sudo apt install -y apt-transport-https ca-certificates curl software-properties-common jq resolvconf
 
     # 添加 Docker 官方 GPG 密钥
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
