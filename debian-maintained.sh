@@ -19,7 +19,7 @@ install_docker_and_compose() {
 
     # 更新包列表并安装必要的依赖
     sudo apt update
-    sudo apt install -y curl jq resolvconf docker.io docker-compose
+    sudo apt install -y curl jq resolvconf docker.io docker-compose apparmor
 }
 
 # 函数：启用 BBR FQ
