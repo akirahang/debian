@@ -19,43 +19,7 @@ install_docker_and_compose() {
 
     # 更新包列表并安装必要的依赖
     sudo apt update
-    sudo apt install -y apt-transport-https ca-certificates curl software-properties-common jq resolvconf
-
-    # 添加 Docker 官方 GPG 密钥
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-
-    # 检查是否为 Debian 或 Ubuntu 并添加相应的 Docker 官方仓库
-    if [ -f /etc/os-release ]; then
-        . /etc/os-release
-        if [ "$ID" = "debian" ]; then
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-        elif [ "$ID" = "ubuntu" ]; then
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-        else
-            echo "不支持的操作系统: $ID"
-            exit 1
-        fi
-    else
-        echo "无法检测操作系统类型"
-        exit 1
-    fi
-
-    # 更新包列表并安装 Docker
-    sudo apt update
-    sudo apt install -y docker-ce docker-ce-cli containerd.io
-
-    # 安装 Docker Compose
-    DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)
-    sudo curl -L "https://github.com/docker/compose/releases/download/$DOCKER_COMPOSE_VERSION/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    sudo chmod +x /usr/local/bin/docker-compose
-
-    if [[ -x "$(command -v docker)" && -x "$(command -v docker-compose)" ]]; then
-        echo "成功安装 Docker 和 Docker Compose"
-        echo "Docker 版本: $(docker --version)"
-        echo "Docker Compose 版本: $(docker-compose --version)"
-    else
-        echo "无法安装 Docker 和 Docker Compose"
-    fi
+    sudo apt install -y curl jq resolvconf docker.io docker-compose
 }
 
 # 函数：启用 BBR FQ
