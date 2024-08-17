@@ -26,5 +26,5 @@ wget -O /root/npc.sh https://github.com/akirahang/debian/raw/main/npc.sh && chmo
 ```
 防止国内主动探测
 ```
-wget -O /root/npc.sh https://github.com/akirahang/debian/raw/main/npc.sh && chmod a+x npc.sh && bash npc.sh
+wget -O /root/block_china_ips.sh https://github.com/akirahang/debian/raw/main/block_china_ips.sh && chmod a+x block_china_ips.sh && bash block_china_ips.sh
 ```
