@@ -24,3 +24,7 @@ NPC部署
 ```
 wget -O /root/npc.sh https://github.com/akirahang/debian/raw/main/npc.sh && chmod a+x npc.sh && bash npc.sh
 ```
+防止国内主动探测
+```
+wget -O /root/npc.sh https://github.com/akirahang/debian/raw/main/npc.sh && chmod a+x npc.sh && bash npc.sh
+```
