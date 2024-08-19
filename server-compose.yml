@@ -178,7 +178,7 @@ services:
       - '/root/vocechat:/home/vocechat-server/data' 
     
   xui:
-    image: enwaiax/x-ui
+    image: enwaiax/x-ui:alpha-zh
     container_name: xui
     volumes:
       - /root/xui/db/:/etc/x-ui/
