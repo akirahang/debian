@@ -19,7 +19,9 @@ install_docker_and_compose() {
 
     # 更新包列表并安装必要的依赖
     sudo apt update
-    sudo apt install -y curl jq docker.io docker-compose
+    curl -fsSL https://get.docker.com -o get-docker.sh
+    sudo sh get-docker.sh
+    sudo apt install -y curl jq
 }
 
 # 函数：启用 BBR FQ
