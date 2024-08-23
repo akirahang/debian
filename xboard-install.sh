@@ -8,18 +8,18 @@ cd /root || { echo "无法切换到 /root 目录"; exit 1; }
 
 # 获取 Xboard Docker Compose 文件
 echo "正在获取 Xboard Docker Compose 文件..."
-git clone -b docker-compose --depth 1 https://github.com/cedar2025/Xboard xboard || { echo "获取 Xboard Docker Compose 文件失败"; exit 1; }
+git clone -b docker compose --depth 1 https://github.com/cedar2025/Xboard xboard || { echo "获取 Xboard Docker Compose 文件失败"; exit 1; }
 cd /root/xboard || { echo "无法切换到 /root/xboard 目录"; exit 1; }
 echo "Xboard Docker Compose 文件获取完成"
 
 # 执行数据库安装命令
 echo "正在执行数据库安装命令..."
-docker-compose run -it --rm xboard php artisan xboard:install || { echo "数据库安装命令执行失败"; exit 1; }
+docker compose run -it --rm xboard php artisan xboard:install || { echo "数据库安装命令执行失败"; exit 1; }
 echo "数据库安装完成，请记录后台地址和管理员账号密码"
 
 # 启动 Xboard
 echo "正在启动 Xboard..."
-docker-compose up -d || { echo "Xboard 启动失败"; exit 1; }
+docker compose up -d || { echo "Xboard 启动失败"; exit 1; }
 echo "Xboard 启动完成"
 
 # 提示访问网址
