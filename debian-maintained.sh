@@ -269,7 +269,7 @@ volumes:
 EOF
 
     echo "正在启动基础容器..."
-    sudo docker-compose up -d
+    sudo docker compose up -d
 
     if [ $? -eq 0 ]; then
         echo "基础容器已成功部署"
