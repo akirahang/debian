@@ -288,6 +288,21 @@ backup_container_volumes() {
     echo "==============================="
     echo
 
+    # 设置备份目录
+    backup_directory="/path/to/your/backup_directory"
+
+    # 检查备份目录是否存在，如果不存在则创建
+    if [ ! -d "$backup_directory" ]; then
+        echo "备份目录 $backup_directory 不存在，正在创建..."
+        sudo mkdir -p "$backup_directory"
+        if [ $? -eq 0 ]; then
+            echo "备份目录已创建。"
+        else
+            echo "创建备份目录失败。"
+            return 1
+        fi
+    fi
+
     # 列出当前正在运行的Docker容器
     echo "正在列出当前正在运行的Docker容器..."
     running_containers=$(docker ps --format "{{.ID}}: {{.Names}}")
@@ -298,10 +313,10 @@ backup_container_volumes() {
     read -p "请输入要备份的容器编号或名称前四位: " container_input
 
     # 检查用户输入的容器编号前四位是否有效
-    container_id=$(docker ps -q --no-trunc -f "id=${container_input:0:4}" -f status=running)
+    container_id=$(docker ps --no-trunc --format "{{.ID}}" | grep "^${container_input:0:4}")
     if [[ -z "$container_id" ]]; then
         echo "无效的容器编号前四位。"
-        return
+        return 1
     fi
 
     # 获取容器的名称
@@ -314,18 +329,14 @@ backup_container_volumes() {
     declare -a directories=()
     mapfile -t directories < <(echo "$container_mounts" | jq -r '.[].Source')
 
-    # 检查备份目录是否存在，如果不存在则创建
-    if [ ! -d "$backup_directory" ]; then
-        echo "备份目录 $backup_directory 不存在，正在创建..."
-        sudo mkdir -p "$backup_directory"
-        echo "备份目录已创建。"
-    fi
-
     # 备份每个映射目录到指定目录
     for directory in "${directories[@]}"; do
         backup_filename="${container_name}_$(date +%Y%m%d_%H%M%S).tar.gz"
         echo "正在备份映射目录 $directory 到 $backup_directory/$backup_filename..."
-        sudo tar -zcvf "$backup_directory/$backup_filename" -C "$directory" . > /dev/null 2>&1
+        if ! sudo tar -zcvf "$backup_directory/$backup_filename" -C "$directory" . > /dev/null 2>&1; then
+            echo "备份失败：$directory"
+            return 1
+        fi
         echo "备份完成！"
     done
 
@@ -333,7 +344,6 @@ backup_container_volumes() {
     read -p "按 Enter 键返回 Docker 管理菜单..."
 }
 
-# 函数：恢复Docker容器的映射目录
 restore_container_volumes() {
     clear
     echo "==============================="
@@ -341,15 +351,13 @@ restore_container_volumes() {
     echo "==============================="
     echo
 
-    # 检查并提示输入备份目录路径
-    if [ -z "$backup_directory" ]; then
-        read -p "请输入备份目录路径: " backup_directory
-    fi
+    # 设置备份目录路径
+    backup_directory="/path/to/your/backup_directory"
 
     # 检查备份目录是否存在
     if [ ! -d "$backup_directory" ]; then
         echo "备份目录不存在。"
-        return
+        return 1
     fi
 
     # 列出备份目录中的所有备份文件
@@ -357,7 +365,7 @@ restore_container_volumes() {
     backup_files=($(ls "$backup_directory"/*.tar.gz 2>/dev/null))
     if [ ${#backup_files[@]} -eq 0 ]; then
         echo "没有找到任何备份文件。"
-        return
+        return 1
     fi
 
     for i in "${!backup_files[@]}"; do
@@ -372,7 +380,7 @@ restore_container_volumes() {
         backup_file=${backup_files[$file_index]}
     else
         echo "无效的序号。"
-        return
+        return 1
     fi
 
     # 列出当前运行的容器
@@ -381,7 +389,7 @@ restore_container_volumes() {
 
     if [ ${#containers[@]} -eq 0 ]; then
         echo "没有正在运行的容器。"
-        return
+        return 1
     fi
 
     for ((i=0; i<${#containers[@]}; i+=2)); do
@@ -395,10 +403,10 @@ restore_container_volumes() {
     read -p "请输入要恢复到的容器编号或名称前四位: " container_input
 
     # 检查用户输入的容器编号前四位是否有效
-    container_id=$(docker ps -q --no-trunc -f "id=${container_input:0:4}" -f status=running)
+    container_id=$(docker ps --no-trunc --format "{{.ID}}" | grep "^${container_input:0:4}")
     if [[ -z "$container_id" ]]; then
         echo "无效的容器编号前四位。"
-        return
+        return 1
     fi
 
     # 获取容器的名称
@@ -421,12 +429,11 @@ restore_container_volumes() {
     # 恢复每个映射目录
     for directory in "${directories[@]}"; do
         echo "正在恢复映射目录 $directory 从 $backup_file..."
-        sudo tar -xzf "$backup_file" -C "$directory" > /dev/null 2>&1
-        if [ $? -eq 0 ]; then
-            echo "恢复 $directory 完成！"
-        else
+        if ! sudo tar -xzf "$backup_file" -C "$directory" > /dev/null 2>&1; then
             echo "恢复 $directory 失败！"
+            return 1
         fi
+        echo "恢复 $directory 完成！"
     done
 
     # 重启容器
