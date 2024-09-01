@@ -289,7 +289,7 @@ backup_container_volumes() {
     echo
 
     # 设置备份目录
-    backup_directory="/path/to/your/backup_directory"
+    backup_directory="/root/container-backup"
 
     # 检查备份目录是否存在，如果不存在则创建
     if [ ! -d "$backup_directory" ]; then
@@ -352,7 +352,7 @@ restore_container_volumes() {
     echo
 
     # 设置备份目录路径
-    backup_directory="/path/to/your/backup_directory"
+    backup_directory="/root/container-backup"
 
     # 检查备份目录是否存在
     if [ ! -d "$backup_directory" ]; then
