@@ -49,7 +49,10 @@ EOL
     sudo a2ensite webdav-$webdav_user
     sudo systemctl reload apache2
 
-    echo "WebDAV共享已设置：访问路径 $webdav_path 指向目录 $webdav_dir"
+    echo "WebDAV共享已设置："
+    echo "访问路径: http://$(hostname -I | awk '{print $1}')$webdav_path"
+    echo "用户名: $webdav_user"
+    echo "密码: $webdav_password"
     echo "$webdav_user:$webdav_path" >> /etc/webdav_shares
 }
 
@@ -110,7 +113,11 @@ EOL
 
     sudo systemctl restart smbd
 
-    echo "Samba共享已设置：共享名称 $samba_name 指向目录 $samba_dir"
+    echo "Samba共享已设置："
+    echo "共享名称: $samba_name"
+    echo "共享路径: $samba_dir"
+    echo "用户名: $samba_user"
+    echo "密码: $samba_password"
     echo "$samba_name:$samba_user" >> /etc/samba_shares
 }
 
