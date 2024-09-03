@@ -216,6 +216,7 @@ clear_raid_automount() {
 
 # 创建并配置RAID阵列函数
 create_raid_array() {
+    apt install -y mdadm
     echo "[$DATE] Creating new RAID array..." >> $LOG_FILE
 
     # 提示用户选择RAID类型
