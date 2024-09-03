@@ -37,10 +37,89 @@ check_raid_status() {
 # 修复RAID阵列函数
 repair_raid() {
     echo "[$DATE] Attempting to repair RAID array..." >> $LOG_FILE
-    echo "尝试修复RAID阵列..."
-    mdadm --assemble --scan >> $LOG_FILE 2>&1
-    mdadm --monitor --scan --oneshot >> $LOG_FILE 2>&1
-    echo "RAID阵列修复完成。"
+    
+    if ! command -v mdadm &> /dev/null
+    then
+        echo "[$DATE] mdadm not installed. Please install it to manage RAID arrays." >> $LOG_FILE
+        echo "mdadm未安装。请先安装mdadm来管理RAID阵列。"
+        return
+    fi
+
+    # 检查RAID阵列状态
+    RAID_STATUS=$(cat /proc/mdstat)
+    echo "RAID阵列状态："
+    echo "$RAID_STATUS"
+    
+    # 获取当前RAID类型
+    RAID_TYPE=$(mdadm --detail /dev/md0 | grep 'Raid Level' | awk '{print $4}')
+    echo "检测到的RAID类型: $RAID_TYPE"
+    
+    # 检查是否有损坏的磁盘
+    FAILED_DISKS=$(mdadm --detail /dev/md0 | grep 'failed' | awk '{print $NF}')
+    
+    if [ -n "$FAILED_DISKS" ]; then
+        echo "检测到损坏的磁盘：$FAILED_DISKS"
+        echo "[$DATE] Detected failed disks: $FAILED_DISKS" >> $LOG_FILE
+        
+        echo "请确保已更换损坏的磁盘。"
+        read -p "输入已更换的新磁盘设备路径（如：/dev/sdb）： " new_disk
+        
+        if [ ! -b "$new_disk" ]; then
+            echo "无效的设备路径：$new_disk。操作已取消。"
+            echo "[$DATE] Invalid new disk path: $new_disk. Operation cancelled." >> $LOG_FILE
+            return
+        fi
+        
+        # 将新磁盘添加到阵列中
+        echo "[$DATE] Adding new disk $new_disk to RAID array..." >> $LOG_FILE
+        mdadm --manage /dev/md0 --add $new_disk >> $LOG_FILE 2>&1
+        
+        if [ $? -eq 0 ]; then
+            echo "[$DATE] New disk $new_disk added successfully. Rebuilding RAID array..." >> $LOG_FILE
+            echo "新磁盘已成功添加到RAID阵列，正在重建RAID阵列..."
+        else
+            echo "[$DATE] Failed to add new disk $new_disk. Please check the logs for details." >> $LOG_FILE
+            echo "添加新磁盘失败，请检查日志以了解详细信息。"
+            return
+        fi
+        
+        # 根据不同RAID类型执行不同的修复操作
+        case $RAID_TYPE in
+            1)
+                echo "[$DATE] Rebuilding RAID 1 array..." >> $LOG_FILE
+                mdadm --detail /dev/md0 >> $LOG_FILE 2>&1
+                ;;
+            5)
+                echo "[$DATE] Rebuilding RAID 5 array..." >> $LOG_FILE
+                mdadm --detail /dev/md0 >> $LOG_FILE 2>&1
+                ;;
+            6)
+                echo "[$DATE] Rebuilding RAID 6 array..." >> $LOG_FILE
+                mdadm --detail /dev/md0 >> $LOG_FILE 2>&1
+                ;;
+            10)
+                echo "[$DATE] Rebuilding RAID 10 array..." >> $LOG_FILE
+                mdadm --detail /dev/md0 >> $LOG_FILE 2>&1
+                ;;
+            *)
+                echo "[$DATE] Unsupported RAID type: $RAID_TYPE" >> $LOG_FILE
+                echo "不支持的RAID类型：$RAID_TYPE。"
+                return
+                ;;
+        esac
+        
+        # 监控重建进度
+        while cat /proc/mdstat | grep -q 'resync\|recover'; do
+            echo "[$DATE] RAID array is rebuilding... Please wait." >> $LOG_FILE
+            sleep 10
+        done
+        
+        echo "RAID阵列已成功修复并重建。"
+        echo "[$DATE] RAID array successfully rebuilt." >> $LOG_FILE
+    else
+        echo "[$DATE] No failed disks detected. RAID array is healthy." >> $LOG_FILE
+        echo "未检测到损坏的磁盘，RAID阵列健康。"
+    fi
 }
 
 # 创建RAID阵列并挂载到目录
