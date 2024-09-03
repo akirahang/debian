@@ -1,45 +1,63 @@
 #!/bin/bash
 
-# 定义日志文件路径
-LOG_FILE="/var/log/raid_check.log"
+# 日志文件
+LOG_FILE="/var/log/raid_maintenance.log"
+DATE=$(date +"%Y-%m-%d %H:%M:%S")
+MOUNT_POINT="/root/nas"
 
-# 获取当前日期和时间
-DATE=$(date '+%Y-%m-%d %H:%M:%S')
-
-# RAID状态检查函数
+# 检查RAID阵列状态
 check_raid_status() {
-    echo "[$DATE] Checking RAID status..." >> $LOG_FILE
-    
-    if ! command -v mdadm &> /dev/null
-    then
-        echo "[$DATE] mdadm not installed. Please install it to manage RAID arrays." >> $LOG_FILE
-        echo "mdadm未安装。请先安装mdadm来管理RAID阵列。"
-        exit 1
+    echo "[$DATE] Checking RAID array status..." >> $LOG_FILE
+    cat /proc/mdstat
+    echo "RAID阵列状态："
+    cat /proc/mdstat
+}
+
+# 显示RAID阵列的详细信息
+show_raid_detail() {
+    echo "[$DATE] Showing RAID detail..." >> $LOG_FILE
+    mdadm --detail /dev/md0
+    echo "RAID阵列详细信息："
+    mdadm --detail /dev/md0
+}
+
+# 删除RAID设备函数
+remove_raid_device() {
+    show_raid_detail
+
+    # 提示用户选择要删除的设备
+    echo "[$DATE] Select the device to remove from RAID array."
+    read -p "Enter the device path to remove (e.g., /dev/sdb): " device_to_remove
+
+    # 检查输入的设备路径是否有效
+    if [ ! -b "$device_to_remove" ]; then
+        echo "Invalid device path: $device_to_remove. Operation cancelled."
+        echo "[$DATE] Invalid device path: $device_to_remove. Operation cancelled." >> $LOG_FILE
+        return
     fi
 
-    RAID_STATUS=$(cat /proc/mdstat)
-
-    echo "[$DATE] RAID Status:" >> $LOG_FILE
-    echo "$RAID_STATUS" >> $LOG_FILE
+    # 从RAID阵列中移除设备
+    echo "[$DATE] Removing device $device_to_remove from RAID array..." >> $LOG_FILE
+    mdadm --manage /dev/md0 --remove $device_to_remove >> $LOG_FILE 2>&1
     
-    if echo "$RAID_STATUS" | grep -q '\[.*_.*\]'
-    then
-        echo "[$DATE] WARNING: RAID array is degraded or has issues." >> $LOG_FILE
-        echo "警告：RAID阵列降级或存在问题。"
-        
-        echo "$RAID_STATUS" | mail -s "RAID Array Issue Detected on $HOSTNAME" user@example.com
+    if [ $? -eq 0 ]; then
+        echo "[$DATE] Device $device_to_remove removed successfully."
+        echo "设备 $device_to_remove 已成功移除。"
     else
-        echo "[$DATE] RAID array is healthy." >> $LOG_FILE
-        echo "RAID阵列健康。"
+        echo "[$DATE] Failed to remove device $device_to_remove. Please check the logs for details."
+        echo "移除设备 $device_to_remove 失败，请检查日志以了解详细信息。"
+        return
     fi
+
+    # 检查RAID阵列状态
+    check_raid_status
 }
 
 # 修复RAID阵列函数
 repair_raid() {
     echo "[$DATE] Attempting to repair RAID array..." >> $LOG_FILE
     
-    if ! command -v mdadm &> /dev/null
-    then
+    if ! command -v mdadm &> /dev/null; then
         echo "[$DATE] mdadm not installed. Please install it to manage RAID arrays." >> $LOG_FILE
         echo "mdadm未安装。请先安装mdadm来管理RAID阵列。"
         return
@@ -122,159 +140,147 @@ repair_raid() {
     fi
 }
 
-# 创建RAID阵列并挂载到目录
-create_raid() {
-    echo "[$DATE] Creating RAID array..." >> $LOG_FILE
+# 清除RAID的开机自动挂载功能
+clear_raid_automount() {
+    echo "[$DATE] Clearing RAID auto-mount from /etc/fstab..." >> $LOG_FILE
 
-    # 选择RAID类型
-    echo "请选择RAID类型（1, 5, 6, 10）："
-    read -p "输入RAID类型: " raid_type
+    # 备份 /etc/fstab 文件
+    cp /etc/fstab /etc/fstab.bak
+    echo "[$DATE] /etc/fstab backup created at /etc/fstab.bak." >> $LOG_FILE
 
-    # 验证RAID类型
-    if [[ ! "$raid_type" =~ ^(1|5|6|10)$ ]]; then
-        echo "[$DATE] Invalid RAID type selected: $raid_type" >> $LOG_FILE
-        echo "无效的RAID类型，请选择1, 5, 6或10。"
+    # 删除 /etc/fstab 中与 RAID 相关的挂载条目
+    grep -v "$MOUNT_POINT" /etc/fstab > /tmp/fstab.new && mv /tmp/fstab.new /etc/fstab
+
+    if [ $? -eq 0 ]; then
+        echo "[$DATE] RAID auto-mount entry removed from /etc/fstab." >> $LOG_FILE
+        echo "RAID开机自动挂载条目已从 /etc/fstab 中移除。"
+    else
+        echo "[$DATE] Failed to remove RAID auto-mount entry. Please check the logs for details." >> $LOG_FILE
+        echo "移除RAID开机自动挂载条目失败，请检查日志以了解详细信息。"
         return
     fi
 
-    # 显示可用设备列表
-    echo "可用设备列表："
-    lsblk -dno NAME,SIZE | grep -v "NAME"
+    # 取消当前挂载
+    if mountpoint -q $MOUNT_POINT; then
+        umount $MOUNT_POINT
+        if [ $? -eq 0 ]; then
+            echo "[$DATE] RAID array unmounted from $MOUNT_POINT." >> $LOG_FILE
+            echo "RAID阵列已从 $MOUNT_POINT 卸载。"
+        else
+            echo "[$DATE] Failed to unmount RAID array from $MOUNT_POINT. Please check the logs for details." >> $LOG_FILE
+            echo "从 $MOUNT_POINT 卸载RAID阵列失败，请检查日志以了解详细信息。"
+        fi
+    else
+        echo "[$DATE] RAID array is not currently mounted on $MOUNT_POINT." >> $LOG_FILE
+    fi
+}
 
-    # 选择设备
-    read -p "请输入要用于RAID的设备（用空格分隔，例如：/dev/sda /dev/sdb）： " devices
+# 创建并配置RAID阵列函数
+create_raid_array() {
+    echo "[$DATE] Creating new RAID array..." >> $LOG_FILE
 
-    # 验证设备输入
-    for device in $devices; do
-        if [ ! -b "$device" ]; then
-            echo "[$DATE] Invalid device selected: $device" >> $LOG_FILE
-            echo "无效设备：$device。请确保输入正确的设备路径。"
+    # 提示用户选择RAID类型
+    echo "请选择要创建的RAID类型："
+    echo "1) RAID 0"
+    echo "2) RAID 1"
+    echo "3) RAID 5"
+    echo "4) RAID 6"
+    echo "5) RAID 10"
+    read -p "请输入选项（1-5）： " raid_choice
+    
+    case $raid_choice in
+        1) RAID_LEVEL=0 ;;
+        2) RAID_LEVEL=1 ;;
+        3) RAID_LEVEL=5 ;;
+        4) RAID_LEVEL=6 ;;
+        5) RAID_LEVEL=10 ;;
+        *) echo "无效的选择，操作取消。"; return ;;
+    esac
+
+    # 提示用户输入要包含在RAID中的设备
+    read -p "请输入要包含在RAID阵列中的设备路径（用空格分隔，如 /dev/sdb /dev/sdc）： " raid_devices
+
+    # 检查设备路径是否有效
+    for dev in $raid_devices; do
+        if [ ! -b "$dev" ]; then
+            echo "设备路径 $dev 无效，操作取消。"
+            echo "[$DATE] Invalid device path: $dev. Operation cancelled." >> $LOG_FILE
             return
         fi
     done
 
-    # 确认创建RAID
-    echo "即将创建RAID$raid_type，使用设备：$devices"
-    read -p "确认创建？(y/n): " confirm
-
-    if [ "$confirm" != "y" ]; then
-        echo "操作已取消。"
-        return
-    fi
-
-    # 执行RAID创建
-    mdadm --create /dev/md0 --level=$raid_type --raid-devices=$(echo $devices | wc -w) $devices >> $LOG_FILE 2>&1
-
+    # 创建RAID阵列
+    echo "[$DATE] Creating RAID $RAID_LEVEL array with devices: $raid_devices..." >> $LOG_FILE
+    mdadm --create /dev/md0 --level=$RAID_LEVEL --raid-devices=$(echo $raid_devices | wc -w) $raid_devices >> $LOG_FILE 2>&1
+    
     if [ $? -eq 0 ]; then
-        echo "RAID$raid_type 阵列创建成功。"
-        echo "[$DATE] RAID$raid_type array created successfully." >> $LOG_FILE
+        echo "[$DATE] RAID $RAID_LEVEL array created successfully." >> $LOG_FILE
+        echo "RAID $RAID_LEVEL 阵列已成功创建。"
     else
-        echo "RAID创建失败，请检查日志以了解详细信息。"
-        echo "[$DATE] RAID creation failed." >> $LOG_FILE
+        echo "[$DATE] Failed to create RAID array. Please check the logs for details." >> $LOG_FILE
+        echo "创建RAID阵列失败，请检查日志以了解详细信息。"
         return
     fi
 
-    # 创建文件系统并挂载
+    # 创建文件系统
+    echo "[$DATE] Creating filesystem on /dev/md0..." >> $LOG_FILE
     mkfs.ext4 /dev/md0 >> $LOG_FILE 2>&1
-    mkdir -p /root/nas
-    mount /dev/md0 /root/nas
-
+    
     if [ $? -eq 0 ]; then
-        echo "RAID$raid_type 阵列已挂载到 /root/nas/。"
-        echo "[$DATE] RAID$raid_type array mounted to /root/nas/." >> $LOG_FILE
+        echo "[$DATE] Filesystem created successfully on /dev/md0." >> $LOG_FILE
+        echo "已在 /dev/md0 上成功创建文件系统。"
     else
-        echo "挂载失败，请检查日志以了解详细信息。"
-        echo "[$DATE] RAID mount failed." >> $LOG_FILE
+        echo "[$DATE] Failed to create filesystem on /dev/md0. Please check the logs for details." >> $LOG_FILE
+        echo "在 /dev/md0 上创建文件系统失败，请检查日志以了解详细信息。"
         return
     fi
 
-    # 添加到开机自动挂载
-    UUID=$(blkid -s UUID -o value /dev/md0)
-    echo "UUID=$UUID /root/nas ext4 defaults,nofail 0 0" >> /etc/fstab
-
-    if [ $? -eq 0 ]; then
-        echo "RAID$raid_type 阵列已配置为开机自动挂载。"
-        echo "[$DATE] RAID$raid_type array configured for auto-mount at boot." >> $LOG_FILE
-    else
-        echo "配置开机自动挂载失败，请检查日志以了解详细信息。"
-        echo "[$DATE] Auto-mount configuration failed." >> $LOG_FILE
+    # 创建挂载点目录
+    if [ ! -d "$MOUNT_POINT" ]; then
+        mkdir -p $MOUNT_POINT
+        echo "[$DATE] Mount point directory $MOUNT_POINT created." >> $LOG_FILE
+        echo "挂载点目录 $MOUNT_POINT 已创建。"
     fi
-}
 
-# 清除RAID开机自动挂载功能
-clear_raid_mount() {
-    UUID=$(blkid -s UUID -o value /dev/md0)
-
-    if [ -z "$UUID" ]; then
-        echo "找不到RAID阵列的UUID，请确保RAID阵列已正确创建。"
+    # 挂载RAID阵列
+    mount /dev/md0 $MOUNT_POINT
+    
+    if [ $? -eq 0 ]; then
+        echo "[$DATE] RAID array mounted successfully at $MOUNT_POINT." >> $LOG_FILE
+        echo "RAID阵列已成功挂载到 $MOUNT_POINT。"
+    else
+        echo "[$DATE] Failed to mount RAID array at $MOUNT_POINT. Please check the logs for details." >> $LOG_FILE
+        echo "将RAID阵列挂载到 $MOUNT_POINT 失败，请检查日志以了解详细信息。"
         return
     fi
 
-    sed -i "\|UUID=$UUID /root/nas ext4 defaults,nofail 0 0|d" /etc/fstab
-
-    if [ $? -eq 0 ]; then
-        echo "RAID阵列的开机自动挂载已清除。"
-        echo "[$DATE] RAID auto-mount entry removed from /etc/fstab." >> $LOG_FILE
-    else
-        echo "清除开机自动挂载失败，请检查日志以了解详细信息。"
-        echo "[$DATE] Failed to remove auto-mount entry." >> $LOG_FILE
-    fi
+    # 设置开机自动挂载
+    echo "/dev/md0 $MOUNT_POINT ext4 defaults 0 0" >> /etc/fstab
+    echo "[$DATE] RAID array set to auto-mount on boot." >> $LOG_FILE
+    echo "RAID阵列已设置为开机自动挂载。"
 }
 
-# 查看日志函数
-view_logs() {
-    echo "显示日志文件内容："
-    cat $LOG_FILE
-}
-
-# 清除日志文件函数
-clear_logs() {
-    > $LOG_FILE
-    echo "日志文件已清除。"
-}
-
-# 显示菜单
-show_menu() {
-    echo "请选择一个操作："
-    echo "1. 检查RAID状态"
-    echo "2. 修复RAID阵列"
-    echo "3. 创建RAID阵列并挂载"
-    echo "4. 清除RAID的开机自动挂载"
-    echo "5. 查看日志"
-    echo "6. 清除日志"
-    echo "7. 退出"
-    read -p "输入选项编号: " choice
-}
-
-# 主程序入口
-while true; do
-    show_menu
-
+# 主菜单
+main_menu() {
+    echo "请选择操作："
+    echo "1) 查看RAID状态"
+    echo "2) 修复RAID阵列"
+    echo "3) 删除RAID设备"
+    echo "4) 清除RAID开机自动挂载"
+    echo "5) 创建新的RAID阵列"
+    echo "6) 退出"
+    read -p "请输入选项（1-6）： " choice
+    
     case $choice in
-        1)
-            check_raid_status
-            ;;
-        2)
-            repair_raid
-            ;;
-        3)
-            create_raid
-            ;;
-        4)
-            clear_raid_mount
-            ;;
-        5)
-            view_logs
-            ;;
-        6)
-            clear_logs
-            ;;
-        7)
-            echo "退出程序。"
-            exit 0
-            ;;
-        *)
-            echo "无效选项，请重新输入。"
-            ;;
+        1) check_raid_status ;;
+        2) repair_raid ;;
+        3) remove_raid_device ;;
+        4) clear_raid_automount ;;
+        5) create_raid_array ;;
+        6) exit 0 ;;
+        *) echo "无效的选择，请重试。" ;;
     esac
-done
+}
+
+# 脚本入口
+main_menu
