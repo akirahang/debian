@@ -239,8 +239,8 @@ create_raid_array() {
 
     # 列出可用的块设备
     echo "可用的块设备列表："
-    lsblk -d -n -o NAME,SIZE | awk '{print NR") /dev/"$1" "$2}'
-    
+    lsblk -d -n -o NAME,SIZE | awk '{printf NR") /dev/%s %s\n", $1, $2}'
+
     echo "请选择要创建RAID阵列的设备（使用空格分隔设备序号）："
     read -p "请输入设备序号，例如 '1 2': " device_indices
 
