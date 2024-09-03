@@ -220,27 +220,50 @@ create_raid_array() {
 
     # 提示用户选择RAID类型
     echo "请选择要创建的RAID类型："
-    echo "1) RAID 0"
-    echo "2) RAID 1"
-    echo "3) RAID 5"
-    echo "4) RAID 6"
-    echo "5) RAID 10"
+    echo "1) RAID 0 (需要至少2个设备)"
+    echo "2) RAID 1 (需要至少2个设备)"
+    echo "3) RAID 5 (需要至少3个设备)"
+    echo "4) RAID 6 (需要至少4个设备)"
+    echo "5) RAID 10 (需要至少4个设备)"
     read -p "请输入选项（1-5）： " raid_choice
     
     case $raid_choice in
-        1) RAID_LEVEL=0 ;;
-        2) RAID_LEVEL=1 ;;
-        3) RAID_LEVEL=5 ;;
-        4) RAID_LEVEL=6 ;;
-        5) RAID_LEVEL=10 ;;
-        *) echo "无效的选择，操作取消。"; return ;;
+        1) RAID_LEVEL=0; MIN_DEVICES=2 ;;
+        2) RAID_LEVEL=1; MIN_DEVICES=2 ;;
+        3) RAID_LEVEL=5; MIN_DEVICES=3 ;;
+        4) RAID_LEVEL=6; MIN_DEVICES=4 ;;
+        5) RAID_LEVEL=10; MIN_DEVICES=4 ;;
+        *) echo "无效的选择，操作取消。" ; return ;;
     esac
 
-    # 提示用户输入要包含在RAID中的设备
-    read -p "请输入要包含在RAID阵列中的设备路径（用空格分隔，如 /dev/sdb /dev/sdc）： " raid_devices
+    # 列出可用的块设备
+    echo "可用的块设备列表："
+    lsblk -d -n -o NAME,SIZE | awk '{print NR") /dev/"$1" "$2}'
+    
+    echo "请选择要创建RAID阵列的设备（使用空格分隔设备序号）："
+    read -p "请输入设备序号，例如 '1 2': " device_indices
+
+    # 生成设备路径列表
+    device_paths=()
+    for index in $device_indices; do
+        device_path=$(lsblk -d -n -o NAME | sed -n "${index}p")
+        if [ -z "$device_path" ]; then
+            echo "无效的设备序号 $index，操作取消。"
+            echo "[$DATE] Invalid device index: $index. Operation cancelled." >> $LOG_FILE
+            return
+        fi
+        device_paths+=("/dev/$device_path")
+    done
+
+    # 检查设备数量是否符合RAID类型要求
+    if [ ${#device_paths[@]} -lt $MIN_DEVICES ]; then
+        echo "选择的设备数量不足，RAID $RAID_LEVEL 需要至少 $MIN_DEVICES 个设备。"
+        echo "[$DATE] Not enough devices selected. RAID $RAID_LEVEL requires at least $MIN_DEVICES devices." >> $LOG_FILE
+        return
+    fi
 
     # 检查设备路径是否有效
-    for dev in $raid_devices; do
+    for dev in "${device_paths[@]}"; do
         if [ ! -b "$dev" ]; then
             echo "设备路径 $dev 无效，操作取消。"
             echo "[$DATE] Invalid device path: $dev. Operation cancelled." >> $LOG_FILE
@@ -249,8 +272,8 @@ create_raid_array() {
     done
 
     # 创建RAID阵列
-    echo "[$DATE] Creating RAID $RAID_LEVEL array with devices: $raid_devices..." >> $LOG_FILE
-    mdadm --create /dev/md0 --level=$RAID_LEVEL --raid-devices=$(echo $raid_devices | wc -w) $raid_devices >> $LOG_FILE 2>&1
+    echo "[$DATE] Creating RAID $RAID_LEVEL array with devices: ${device_paths[*]}..." >> $LOG_FILE
+    mdadm --create /dev/md0 --level=$RAID_LEVEL --raid-devices=${#device_paths[@]} ${device_paths[*]} >> $LOG_FILE 2>&1
     
     if [ $? -eq 0 ]; then
         echo "[$DATE] RAID $RAID_LEVEL array created successfully." >> $LOG_FILE
