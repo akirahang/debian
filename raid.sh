@@ -21,7 +21,7 @@ show_raid_detail() {
     mdadm --detail /dev/md0
 }
 
-# 删除RAID设备函数
+# 删除RAID设备并恢复硬盘
 remove_raid_device() {
     show_raid_detail
 
@@ -38,7 +38,7 @@ remove_raid_device() {
 
     # 从RAID阵列中移除设备
     echo "[$DATE] Removing device $device_to_remove from RAID array..." >> $LOG_FILE
-    mdadm --manage /dev/md0 --remove $device_to_remove >> $LOG_FILE 2>&1
+    mdadm --manage /dev/md0 --fail $device_to_remove --remove $device_to_remove >> $LOG_FILE 2>&1
     
     if [ $? -eq 0 ]; then
         echo "[$DATE] Device $device_to_remove removed successfully."
@@ -46,6 +46,45 @@ remove_raid_device() {
     else
         echo "[$DATE] Failed to remove device $device_to_remove. Please check the logs for details."
         echo "移除设备 $device_to_remove 失败，请检查日志以了解详细信息。"
+        return
+    fi
+
+    # 清除设备上的RAID元数据
+    echo "[$DATE] Clearing RAID metadata from $device_to_remove..." >> $LOG_FILE
+    mdadm --zero-superblock $device_to_remove >> $LOG_FILE 2>&1
+    
+    if [ $? -eq 0 ]; then
+        echo "[$DATE] RAID metadata cleared from $device_to_remove."
+        echo "设备 $device_to_remove 上的RAID元数据已清除。"
+    else
+        echo "[$DATE] Failed to clear RAID metadata from $device_to_remove. Please check the logs for details."
+        echo "清除设备 $device_to_remove 上的RAID元数据失败，请检查日志以了解详细信息。"
+        return
+    fi
+
+    # 对设备进行分区
+    echo "[$DATE] Partitioning the device $device_to_remove..." >> $LOG_FILE
+    parted $device_to_remove mklabel gpt mkpart primary ext4 0% 100% >> $LOG_FILE 2>&1
+    
+    if [ $? -eq 0 ]; then
+        echo "[$DATE] Device $device_to_remove partitioned successfully."
+        echo "设备 $device_to_remove 已成功分区。"
+    else
+        echo "[$DATE] Failed to partition the device $device_to_remove. Please check the logs for details."
+        echo "分区设备 $device_to_remove 失败，请检查日志以了解详细信息。"
+        return
+    fi
+
+    # 格式化为 ext4 文件系统
+    echo "[$DATE] Formatting $device_to_remove as ext4..." >> $LOG_FILE
+    mkfs.ext4 ${device_to_remove}1 >> $LOG_FILE 2>&1
+    
+    if [ $? -eq 0 ]; then
+        echo "[$DATE] Device $device_to_remove formatted as ext4 successfully."
+        echo "设备 $device_to_remove 已成功格式化为ext4。"
+    else
+        echo "[$DATE] Failed to format the device $device_to_remove as ext4. Please check the logs for details."
+        echo "格式化设备 $device_to_remove 为ext4失败，请检查日志以了解详细信息。"
         return
     fi
 
