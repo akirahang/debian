@@ -253,15 +253,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
- 
-  filebrowser:
-    image: filebrowser/filebrowser
-    container_name: filebrowser
-    volumes:
-      - /:/srv
-    restart: unless-stopped
-    ports:
-      - 8081:80
       
 volumes:
   portainer_data:
