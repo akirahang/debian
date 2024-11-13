@@ -239,3 +239,19 @@ services:
       - "6379:6379"
     volumes:
       - /root/redis:/data      
+
+  filebrowser:
+    image: filebrowser/filebrowser:s6
+    container_name: filebrowser
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+    ports:
+      - "8081:80"
+    volumes:
+      - /root/filebrowser/srv:/srv
+      - /root/filebrowser/database/filebrowser.db:/database/filebrowser.db
+      - /root/filebrowser/config/settings.json:/config/settings.json
+    restart: unless-stopped
+
+
