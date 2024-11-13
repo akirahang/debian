@@ -20,9 +20,6 @@ services:
       - "5244:5244"
       - "6800:6800"
     environment:
-      - PUID=0
-      - PGID=0
-      - UMASK=022
       - ALIST_DB_TYPE=mysql
       - ALIST_DB_HOST=你的MySQL服务器地址 
       - ALIST_DB_PORT=3306                
