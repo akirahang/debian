@@ -132,7 +132,7 @@ services:
     ports:
       - 86:80
     environment:
-      DATABASE_URL=mysql://vaultwarden_user:your_password@postgres:5432/vaultwarden_db
+      - DATABASE_URL=mysql://vaultwarden_user:your_password@postgres:5432/vaultwarden_db
 
   watchtower:
     image: containrrr/watchtower
