@@ -22,12 +22,6 @@ services:
     environment:
       - PUID=0        
       - PGID=0      
-      - ALIST_DB_TYPE=mysql
-      - ALIST_DB_HOST=你的MySQL服务器地址 
-      - ALIST_DB_PORT=3306                
-      - ALIST_DB_USER=alist_user          
-      - ALIST_DB_PASSWORD=password123     
-      - ALIST_DB_NAME=alist_db            
     volumes:
       - /etc/alist:/opt/alist/data
       
