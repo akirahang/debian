@@ -68,18 +68,18 @@ services:
       - /root/kodbox:/var/www/html
     restart: unless-stopped
 
-  forge-minecraft:
-    image: webhippie/minecraft-forge:latest
-    container_name: forge-minecraft
-    volumes:
-      - /root/minecraft/:/data
-    ports:
-      - "25565:25565"
-    environment:
-      - EULA=TRUE
-      - SERVER_JAR=latest
-      - JAVA_OPTS=-Xmx4G -Xms2G
-    restart: unless-stopped
+forge-minecraft:
+  image: webhippie/minecraft-forge:latest
+  container_name: forge-minecraft
+  volumes:
+    - /root/minecraft:/var/lib/minecraft
+  ports:
+    - "25565:25565"
+  environment:
+    - EULA=TRUE
+    - SERVER_JAR=latest
+    - JAVA_OPTS=-Xmx4G -Xms2G
+  restart: unless-stopped
 
   nginx:
     image: jc21/nginx-proxy-manager
