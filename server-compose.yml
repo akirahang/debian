@@ -1,5 +1,13 @@
 version: "3"
 services:
+  chatgpt-web:
+    image: chatgptweb/chatgpt-web:latest
+    container_name: chatgpt_web
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - ACCESS_TOKEN=your_access_token  # 替换为您的 Access Token
   adguardhome:
     container_name: adguardhome
     image: adguard/adguardhome
