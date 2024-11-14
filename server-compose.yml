@@ -8,6 +8,7 @@ services:
       - "25565:25565"
     volumes:
       - "/root/minecraft:/data"
+    restart: always
 
   filebrowser:
     image: filebrowser/filebrowser
