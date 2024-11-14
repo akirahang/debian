@@ -66,7 +66,9 @@ services:
     restart: unless-stopped
     environment:
       - MEMORYSIZE=1G
-      - PAPERMC_FLAGS=
+      - ONLINE_MODE=false
+      - TYPE=forge
+      - MOTD=Welcome to Mintcat!!!
     volumes:
       - /root/mcserver:/data:rw
     ports:
