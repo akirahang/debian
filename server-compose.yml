@@ -11,9 +11,6 @@ services:
     environment:
       - EULA=TRUE
       - TYPE=FORGE
-      - VERSION=1.19.3
-      - FORGEVERSION=43.1.45
-      - SERVER_JAR=forge-1.19.3-43.1.45.jar
     command: java -Xmx2G -Xms1G -jar ${SERVER_JAR} nogui
     restart: always
     
