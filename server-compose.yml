@@ -1,6 +1,22 @@
 version: "3"
 services:
 
+  minecraft-server:
+    image: itzg/minecraft-server:java8
+    container_name: minecraft_server
+    volumes:
+      - /root/minecraft:/data
+    ports:
+      - "25565:25565"
+    environment:
+      - EULA=TRUE
+      - TYPE=FORGE
+      - VERSION=1.19.3
+      - FORGEVERSION=43.1.45
+      - SERVER_JAR=forge-1.19.3-43.1.45.jar
+    command: java -Xmx2G -Xms1G -jar ${SERVER_JAR} nogui
+    restart: always
+    
   filebrowser:
     image: filebrowser/filebrowser
     container_name: filebrowser
