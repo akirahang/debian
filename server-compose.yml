@@ -1,5 +1,20 @@
 version: "3"
 services:
+
+  filebrowser:
+    image: filebrowser/filebrowser
+    container_name: filebrowser
+    volumes:
+      - /root/filebrowser:/data
+    ports:
+      - "8080:80"
+    environment:
+      - DATA_DIR=/
+      - TZ=Asia/Shanghai  # 设置时区，根据需要调整
+      - USERNAME=your_username  # 设置登录用户名
+      - PASSWORD=your_password  # 设置登录密码
+    restart: always
+    
   chatgpt-web:
     image: chatgptweb/chatgpt-web:latest
     container_name: chatgpt_web
@@ -8,6 +23,7 @@ services:
       - "8000:8000"
     environment:
       - ACCESS_TOKEN=your_access_token  # 替换为您的 Access Token
+      
   adguardhome:
     container_name: adguardhome
     image: adguard/adguardhome
