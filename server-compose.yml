@@ -11,6 +11,7 @@ services:
     environment:
       - EULA=false
       - VERSION=1.9
+    restart: always
 
   filebrowser:
     image: filebrowser/filebrowser
