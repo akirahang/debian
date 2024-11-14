@@ -76,6 +76,8 @@ forge-minecraft:
   ports:
     - "25565:25565"
   environment:
+    - PUID=0        
+    - PGID=0        
     - EULA=TRUE
     - SERVER_JAR=latest
     - JAVA_OPTS=-Xmx4G -Xms2G
