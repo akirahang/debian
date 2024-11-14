@@ -60,20 +60,18 @@ services:
       - /root/kodbox:/var/www/html
     restart: unless-stopped
 
-  mcserver:
-    image: marctv/minecraft-papermc-server:latest
-    container_name: mcserver
-    restart: unless-stopped
-    environment:
-      - MEMORYSIZE=1G
-      - ONLINE_MODE=false
-      - TYPE=forge
-      - MOTD=Welcome to Mintcat!!!
+  forge-minecraft:
+    image: webhippie/minecraft-forge:latest
+    container_name: forge-minecraft
     volumes:
-      - /root/mcserver:/data:rw
+      - /root/minecraft/:/data
     ports:
-      - 25565:25565
-    tty: true
+      - "25565:25565"
+    environment:
+      - EULA=TRUE
+      - SERVER_JAR=latest
+      - JAVA_OPTS=-Xmx4G -Xms2G
+    restart: unless-stopped
 
   nginx:
     image: jc21/nginx-proxy-manager
