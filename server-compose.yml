@@ -11,8 +11,8 @@ services:
     environment:
       - DATA_DIR=/
       - TZ=Asia/Shanghai  # 设置时区，根据需要调整
-      - USERNAME=your_username  # 设置登录用户名
-      - PASSWORD=your_password  # 设置登录密码
+      - USERNAME=admin  # 设置登录用户名
+      - PASSWORD=admin123  # 设置登录密码
     restart: always
     
   chatgpt-web:
