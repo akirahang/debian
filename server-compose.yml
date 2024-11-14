@@ -2,16 +2,15 @@ version: "3"
 services:
 
   minecraft:
-    image: itzg/minecraft-server:latest  # 替换为你要使用的镜像标签
-    container_name: minecraft_server  # 容器名称，可自定义
+    image: itzg/minecraft-server:latest  
+    container_name: minecraft_server  
     volumes:
-      - /root/minecraft:/data  # 将本地目录映射到容器内的/data目录
+      - /root/minecraft:/data  
     ports:
-      - "25565:25565"  # 映射Minecraft服务器的端口
+      - "25565:25565"  
     environment:
-      # 这里可以设置Minecraft服务器的各种环境变量，比如EULA=true, VERSION=1.19.2等
-      EULA=false
-      VERSION=1.9
+      - EULA=false
+      - VERSION=1.9
 
   filebrowser:
     image: filebrowser/filebrowser
