@@ -8,8 +8,6 @@ services:
       - /root/minecraft:/data  
     ports:
       - "25565:25565"  
-    environment:
-      - EULA=false
     restart: always
 
   filebrowser:
