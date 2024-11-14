@@ -3,12 +3,11 @@ services:
 
   minecraft:
     image: itzg/minecraft-server
-    container_name: minecraft_server  
-    volumes:
-      - /root/minecraft:/data  
+    container_name: minecraft
     ports:
-      - "25565:25565"  
-    restart: always
+      - "25565:25565"
+    volumes:
+      - "/root/minecraft:/data"
 
   filebrowser:
     image: filebrowser/filebrowser
