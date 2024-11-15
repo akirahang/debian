@@ -44,7 +44,6 @@ docker compose run -it --rm \
   -e admin_account="$admin_email" \
   -e enable_sqlite=$(if [ "$use_external_mysql" = "y" ]; then echo "false"; else echo "true"; fi) \
   -e enable_redis=$(if [ "$use_external_redis" = "y" ]; then echo "false"; else echo "true"; fi) \
-  xboard php artisan xboard:install
 
 # 获取访问地址和密码
 echo "安装完成！请记录以下信息："
